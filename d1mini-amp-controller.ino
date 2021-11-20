@@ -716,12 +716,13 @@ void setup(void) {
 
   if (mqtt_enabled == true) {
     pubsubClient.subscribe("xpa125b/#");
-    // update mqtt so it knows we are on the default startup state of RX
     pubsubClient.publish("xpa125b/state", "rx", true);
-    // update mqtt so it knows we are on the default startup band of 160m
     pubsubClient.publish("xpa125b/band", "160", true);
-    // update mqtt so it knows we are on the default startup mode of analogue
-    pubsubClient.publish("xpa125b/mode", "analogue", true);
+    pubsubClient.publish("xpa125b/txtime", "0", false);
+    pubsubClient.publish("xpa125b/txblocktimer", "0", false);
+    char value[10];
+    mode.toCharArray(value, 10);
+    pubsubClient.publish("xpa125b/mode", value, true);
   }
 
   if (rigctl_default_enable) {
@@ -850,10 +851,6 @@ void setup(void) {
   Serial.println(frequency);
   Serial.print("state ");
   Serial.println(current_state);
-
-  // update mqtt with txtime / txblocktimer to 0 on start
-  pubsubClient.publish("xpa125b/txtime", "0", false);
-  pubsubClient.publish("xpa125b/txblocktimer", "0", false);
 
 }
 
