@@ -95,6 +95,8 @@ If MQTT is disabled and the mode is changed to MQTT then it will be automaticall
 
 If TX time exceeds 300 seconds then TX will be blocked for 60 seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
 
+# Home Assistant
+  
 If you use Home Assistant (https://www.home-assistant.io/) you can add sensors via MQTT as follows:
   
 ```
