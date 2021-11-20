@@ -388,9 +388,9 @@ void handleRoot() {
   message += "rigctld.exe -r COM18 -m 2014 -s 57600 -t 51111</br></br>";
   message += "If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled</br></br>";
   message += "If TX time exceeds ";
-  message += (tx_limit / 100);
+  message += tx_limit;
   message += " seconds then TX will be blocked for ";
-  message += (tx_block_time / 100);
+  message += tx_block_time;
   message += " seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.</br></br>";
   message += "</body></html>";
   server.send(200, "text/html; charset=UTF-8", message);
