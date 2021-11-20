@@ -95,3 +95,39 @@ If MQTT is disabled and the mode is changed to MQTT then it will be automaticall
 
 If TX time exceeds 300 seconds then TX will be blocked for 60 seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
 
+If you use Home Assistant (https://www.home-assistant.io/) you can add sensors via MQTT as follows:
+  
+```
+#########################################################################
+# XPA125B
+#########################################################################
+- platform: mqtt
+  name: "XPA125B State"
+  state_topic: "xpa125b/state"
+- platform: mqtt
+  name: "XPA125B Band"
+  state_topic: "xpa125b/band"
+- platform: mqtt
+  name: "XPA125B Frequency"
+  state_topic: "xpa125b/frequency"
+  unit_of_measurement: "Hz"
+- platform: template
+  sensors:
+      xpa125b_frequency_mhz:
+        friendly_name: "XPA125B Frequency MHz"
+        unit_of_measurement: 'MHz'
+        icon_template: mdi:sine-wave
+        value_template: >-
+                {{ (states('sensor.xpa125b_frequency') | float  / 1000000 | round(6)) }}
+- platform: mqtt
+  name: "XPA125B Mode"
+  state_topic: "xpa125b/mode"
+- platform: mqtt
+  name: "XPA125B TX Time"
+  state_topic: "xpa125b/txtime"
+  unit_of_measurement: "s"
+- platform: mqtt
+  name: "XPA125B TX Block Timer"
+  state_topic: "xpa125b/txblocktimer"
+  unit_of_measurement: "s"
+```
