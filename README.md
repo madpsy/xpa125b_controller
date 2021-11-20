@@ -43,7 +43,7 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
 # Web Interface
   
-A simple web interface is available on port 80 which allows access to basic functionality aswel as documentation.
+A simple web interface is available on port 80 which allows access to basic functionality aswel as documentation. This uses REST so anything which can be done here can also be achieved via the API.
   
 ![alt text](https://raw.githubusercontent.com/madpsy/xpa125b_controller/main/webinterface.png "wen")
   
