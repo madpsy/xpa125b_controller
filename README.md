@@ -12,6 +12,8 @@ Supported protocols:
 + MQTT
 + Rigctld
 
+# Configuration
+
 The top of the file contains config options which need set first:
 
 + ssid - your WiFi SSID
@@ -80,13 +82,14 @@ Examples: (Note: mDNS should be xpa125b.local)
 + `mosquitto_pub -h hostname -u username -P password -t xpa125b/setmode -m http`
 + `mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime`
 
-When serialonly is enabled neither http/mqtt (wifi is disabled) nor analogue can be used
+When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor analogue can be used
 You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial
-In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable (default mode on boot)
-In serial mode we only accept band/freq selection and rx/tx via serial
-In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
-In http mode we only accept band/freq selection and rx/tx via http messages
-In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)
+
++ In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable
++ In serial mode we only accept band/freq selection and rx/tx via serial
++ In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
++ In http mode we only accept band/freq selection and rx/tx via http messages
++ In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled
 
