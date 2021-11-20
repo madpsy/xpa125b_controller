@@ -3,7 +3,7 @@ Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
 
-Supported protocols:
+Supported APIs/protocols:
 
 + Analogue (Yaesu standard band voltages)
 + Serial
