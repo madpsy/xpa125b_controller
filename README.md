@@ -45,7 +45,7 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
 A simple web interface is available on port 80 which allows access to basic functionality aswel as documentation. This uses REST so anything which can be done here can also be achieved via the API.
   
-![alt text](https://raw.githubusercontent.com/madpsy/xpa125b_controller/main/webinterface.png "wen")
+![web](https://raw.githubusercontent.com/madpsy/xpa125b_controller/main/webinterface.png "wen")
   
 # Valid serial commands (115200 baud):
 
@@ -139,3 +139,7 @@ If you use Home Assistant (https://www.home-assistant.io/) you can add sensors v
   state_topic: "xpa125b/txblocktimer"
   unit_of_measurement: "s"
 ```
+
+  Then create some cards on a dashboard and it will look something like this:
+  
+  ![ha](https://raw.githubusercontent.com/madpsy/xpa125b_controller/main/ha.png "ha")
