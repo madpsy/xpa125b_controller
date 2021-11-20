@@ -26,6 +26,8 @@ If you want to enable MQTT set the following:
 + mqttuser = <username>  (MQTT username)
 + mqttpass = <password>  (MQTT password)
 
+# Rigctl
+
 To make rigctl default on boot first ensure WiFi credentials are filled in and also set:
 
 +  mode = rigctl
@@ -40,6 +42,8 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
  In the above we are using `COM18` as the other end of the virtual com cable. `2014` is the rig ID for a Kenwood TS-2000 which SDR Console emulates. The port `51111` is what you would then set `rigctl_default_port` to.
   
   Other software such as SparkSDR (https://www.sparksdr.com/) has rigctld built in so no need to run the daemon - simply point the controller to the IP/port of SparkSDR directly. This is the ideal way to run the controller.
+ 
+ If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873
   
 # Web Interface
   
