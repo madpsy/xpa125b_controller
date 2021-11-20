@@ -5,6 +5,7 @@ const char* ssid = "";
 const char* password = "";
 
 // MQTT config
+bool mqtt_enabled = false;
 const char* mqttserver = "";
 const char* mqttuser = "";
 const char* mqttpass = "";
@@ -41,8 +42,6 @@ int yaesu_band_pin = A0;
 
 String serialValue;
 char serialEOL = '\n';
-
-bool mqtt_enabled = true;
 
 int current_band = 0;
 int previous_band = 0;
