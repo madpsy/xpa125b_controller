@@ -1,3 +1,26 @@
+// *********** START CONFIG ***********
+
+// WiFi config
+const char* ssid = "";
+const char* password = "";
+
+// MQTT config
+const char* mqttserver = "";
+const char* mqttuser = "";
+const char* mqttpass = "";
+
+// default mode
+String mode = "analogue";
+
+// TX blocker config in seconds
+int tx_limit = 300; // 300 = 5 mins 
+int tx_block_time = 60; // 60 = 1 minute
+
+// rigctl timeout in milliseconds
+int rigctl_timeout = 250;
+
+// *********** END CONFIG ***********
+
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -5,22 +28,11 @@
 #include <PubSubClient.h>
 #include <Regexp.h>
 
-#ifndef STASSID
-#define STASSID "<SSID>"
-#define STAPSK  "<Key>"
-#endif
-
-const char* ssid = STASSID;
-const char* password = STAPSK;
-
-const char* mqttserver = "<hostname>";
-const char* mqttuser = "<username<";
-const char* mqttpass = "<password>";
-
 ESP8266WebServer server(80);
 
-WiFiClient wifiClient;
-PubSubClient mqttClient;
+WiFiClient mqttClient;
+WiFiClient rigctlClient;
+PubSubClient pubsubClient;
 
 int ptt_pin = D1;
 int band_pin = D2;
@@ -32,10 +44,6 @@ char serialEOL = '\n';
 
 bool mqtt_enabled = true;
 
-// multiply seconds by 100 to select the value
-int tx_limit = 30000; // 30000 = 5 mins 
-int tx_block_time = 6000; // 6000 = 1 minute
-
 int current_band = 0;
 int previous_band = 0;
 int tx_timer = 0;
@@ -45,24 +53,28 @@ int tx_block_timer = 0;
 int tx_block_seconds = 0;
 int tx_block_previous_seconds = 0;
 int yaesu_band_voltage = 0;
+unsigned long current_tx_millis = 0;
+unsigned long previous_tx_millis = 0;
+unsigned long current_block_millis = 0;
+unsigned long previous_block_millis = 0;
 bool rx_state = true;
 bool previous_state = 0;
 bool current_state = 0;
 bool serialonly = 0;
 bool current_analogue_rx = 0;
 bool previous_analogue_rx = 0;
+bool current_rigctl_rx = 0;
+bool previous_rigctl_rx = 0;
+bool rigctl_address_set = false;
+bool rigctl_port_set = false;
 String frequency = "0";
+String previous_frequency = "0";
+String rigctl_address;
+String rigctl_port;
+IPAddress remote_ip;
+IPAddress rigctl_ipaddress;
+int rigctl_portnumber;
 
-// analogue, http or mqtt control of rx/tx and band selection
-// Set with mosquitto_pub -h localhost -u mosquitto -P xxxxxx -t xpa125b/setmode -m mqtt (or http or analouge)
-// Can also set via HTTP with GET /setmode/analogue /setmode/http or /setmode/mqtt
-// You can set the mode via HTTP or MQTT no matter what mode we're currently in
-// In analogue mode we accept both mqtt and http commands for band selection but rx/tx is only via the control cable
-// In mqtt mode we only accept band selection and rx/tx via mqtt messages
-// In http mode we only accept band selection and rx/tx via http messages
-
-// set to analogue by default
-String mode = "analogue";
 String curState = "rx";
 String curBand = "0";
 
@@ -89,6 +101,13 @@ String getValue(String data, char separator, int index)
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
+String getRemoteIP() {
+  // remote_ip variable is of type 'IPAddress' and can be used elsewhere if needed
+  remote_ip = server.client().remoteIP();
+  // this function actually returns a string 
+  return server.client().remoteIP().toString();
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
   message="";
   Topic=topic;
@@ -110,17 +129,17 @@ void webServer(bool value) {
 }
 
 void mqttConnect() {
-  mqttClient.setClient(wifiClient);
-  mqttClient.setServer(mqttserver,1883);
-  // mqttClient.connected condition here prevents a crash which can happen if already connected
-  if (((mqtt_enabled == true) && (!mqttClient.connected()) && (WiFi.status() == WL_CONNECTED))) {
+  pubsubClient.setClient(mqttClient);
+  pubsubClient.setServer(mqttserver,1883);
+  // pubsubClient.connected condition here prevents a crash which can happen if already connected
+  if (((mqtt_enabled == true) && (!pubsubClient.connected()) && (WiFi.status() == WL_CONNECTED))) {
     delay(100); // stops it trying to reconnect as fast as the loop can go
     Serial.println("Attempting MQTT connection");
-    if (mqttClient.connect("xpa125b", mqttuser, mqttpass)) {
+    if (pubsubClient.connect("xpa125b", mqttuser, mqttpass)) {
       Serial.println("MQTT connected"); 
-      mqttClient.subscribe("xpa125b/#");
+      pubsubClient.subscribe("xpa125b/#");
     } else {
-      Serial.println(mqttClient.state());
+      Serial.println(pubsubClient.state());
     }
   }
 }
@@ -156,9 +175,108 @@ void getFrequency() {
   server.send(200, "text/html; charset=UTF-8", frequency);
 }
 
+String getRigctlAddress() {
+  if (!rigctl_address_set) {
+    return getRemoteIP();
+  } else {
+    return rigctl_address;
+  }
+}
+
+String getRigctlPort() {
+  if (!rigctl_port_set) {
+    return "51111";
+  } else {
+    return rigctl_port;
+  }
+}
+
+String getRigctlServer() {
+  if ((rigctl_address_set) && (rigctl_port_set)) {
+    return rigctl_address + ":" + rigctl_port;
+  } else {
+    return "null:null";
+  }
+}
+
+void httpGetRigctlServer() {
+  String result;
+  if (testRigctlServer()) {
+    result = "success";
+  } else {
+    result = "failed";
+  }
+  server.send(200, "text/html; charset=UTF-8", getRigctlServer() + " " + result);
+}
+
+void setRigctlAddress(String address) {
+  rigctl_address = address;
+  rigctl_address_set = true;
+  rigctl_ipaddress.fromString(address);
+  Serial.print("rigctl_address ");
+  Serial.println(rigctl_address);
+}
+
+void setRigctlPort(String port) {
+  rigctl_port = port;
+  rigctl_port_set = true;
+  rigctl_portnumber = port.toInt();
+  Serial.print("rigctl_port ");
+  Serial.println(rigctl_port);
+}
+
+bool testRigctlServer() {
+  if ((rigctl_address_set) && (rigctl_port_set)) {
+   if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
+    rigctlClient.stop();
+    Serial.print("connection to rigctl server succeeded ");
+    Serial.println(rigctl_address + ":" + rigctl_port);
+    return true;
+   } else {
+    Serial.print("connection to rigctl server failed ");
+    Serial.println(rigctl_address + ":" + rigctl_port);
+    return false;
+   }
+  } else {
+    Serial.println("rigctl server not set");
+    return false;
+  }
+}
+
+String sendRigctlCommand(char* command) {
+    
+  if ((rigctl_address_set) && (rigctl_port_set)) {
+    if (!rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
+      Serial.println("rigctl connection failed");
+    } else {
+      rigctlClient.print(command);
+      rigctlClient.print("\n");
+    
+      unsigned long timeout = millis();
+      while (rigctlClient.available() == 0) {
+       if (millis() - timeout > rigctl_timeout) {
+         //Serial.print("rigctl timeout for command: ");
+         //Serial.println(command);
+         rigctlClient.stop();
+         return("error");
+        }
+     }
+
+      String response;
+      while(rigctlClient.available()){
+        char ch = static_cast<char>(rigctlClient.read());
+       response += String(ch);
+      }
+      //rigctlClient.stop();
+      int length = response.length();
+      response.remove(length - 1, 1);
+      return(response);
+    }
+  }
+}
+
 void handleRoot() {
   String message = "<html><head><title>XPA125B</title></head><body>";
-  message += "<iframe name='dummyframe' id='dummyframe' style='display: none;'></iframe>";
   message += "<script>";
   message += "var xhr = new XMLHttpRequest();";
   message += "function mouseDown() {";
@@ -175,8 +293,9 @@ void handleRoot() {
   message += "}";
   message += "</script>";
   message += "Xiegu XPA125B Controller</br></br>";
-  message += "<form action='/setmode' method='post' target='dummyframe'>";
+  message += "<form action='/setmode' method='post' target='response'>";
   message += "<select name='mode'>";
+  message += "<option value='rigctl'>Rigctl</option>";
   message += "<option value='analogue'>Analogue</option>";
   message += "<option value='serial'>Serial</option>";
   message += "<option value='http'>HTTP</option>";
@@ -184,7 +303,7 @@ void handleRoot() {
   message += "</select>";
   message += "<button name='mode'>Set Mode</button>";
   message += "</form>";
-  message += "<form action='/setband' method='post' target='dummyframe'>";
+  message += "<form action='/setband' method='post' target='response'>";
   message += "<select name='band'>";
   message += "<option value='160'>160m</option>";
   message += "<option value='80'>80m</option>";
@@ -201,28 +320,42 @@ void handleRoot() {
   message += "<button name='band'>Set Band</button>";
   message += "</form>";
   message +="<input id='demo' type='button' value='PTT RX' onmouseup='mouseUp();' onmousedown='mouseDown();'></br></br>";
-  message += "<form action='/setmqtt' method='post' target='dummyframe'>";
+  message += "<form action='/setmqtt' method='post' target='response'>";
   message += "<button name='mqtt' value='enable'>Enable MQTT</button>";
   message += "</form>";
-  message += "<form action='/setmqtt' method='post' target='dummyframe'>";
+  message += "<form action='/setmqtt' method='post' target='response'>";
   message += "<button name='mqtt' value='disable'>Disable MQTT</button>";
   message += "</form>";
-  message += "</br>";
-  message += "<iframe src='/status' scrolling='no' frameBorder='0' width=700 height=40></iframe>";
+  message += "Rigctl Server Settings:</br></br>";
+  message += "<form action='/setrigctl' method='post' target='response'>";
+  message += "<input type='text' size='15' maxlength='50' name='address' value='";
+  message += getRigctlAddress();
+  message += "'>";
+  message += "<input type='text' size='5' maxlength='5' name='port' value='";
+  message += getRigctlPort();
+  message += "'>";
+  message += "<button>Set/Test</button>";
+  message += "</form>";
+  message += "Last Response: ";
+  message += "<iframe name='response' id='response' scrolling='no' frameBorder='0' width=400 height=25></iframe></br>";
+  message += "Current State: ";
+  message += "<iframe src='/status' scrolling='no' frameBorder='0' width=700 height=25></iframe>";
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
   message += "serialonly [true|false] (disables analogue and wifi entirely)</br>";
-  message += "setmode [analogue|serial|http|mqtt]</br>";
+  message += "setmode [analogue|serial|http|mqtt|rigctl]</br>";
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
-  message += "setmqtt [enable|disable]</br></br>";
+  message += "setmqtt [enable|disable]</br>";
+  message += "setrigctl [address] [port]</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
-  message += "/setmode mode=[analogue|serial|http|mqtt]</br>";
+  message += "/setmode mode=[analogue|serial|http|mqtt|rigctl]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
-  message += "/setmqtt mqtt=[enable|disable] (only available via http)</br></br>";
+  message += "/setmqtt mqtt=[enable|disable] (only available via http)</br>";
+  message += "/setrigctl address=[rigctl IP address] port=[rigctl port] (http only)</br></br>";
   message += "Valid HTTP GET paths:</br></br>";
   message += "<a href='/mode'>/mode</a> (show current mode)</br>";
   message += "<a href='/state'>/state</a> (show current state)</br>";
@@ -232,6 +365,7 @@ void handleRoot() {
   message += "<a href='/txblocktimer'>/txblocktimer</a> (show tx countdown block timer in seconds)</br>";
   message += "<a href='/network'>/network</a> (show network details)</br>";
   message += "<a href='/mqtt'>/mqtt</a> (show if mqtt is enabled - only available via http)</br>";
+  message += "<a href='/rigctl'>/rigctl</a> (show rigctl server and performs connection test - only available via http)</br>";
   message += "<a href='/status'>/status</a> (show status summary in HTML - only available via http)</br></br>";
   message += "MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the message is the values in [])</br></br>";
   message += "Examples: (Note: mDNS should be xpa125b.local)</br></br>";
@@ -247,8 +381,11 @@ void handleRoot() {
   message += "You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial</br>";
   message += "In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable (default mode on boot)</br>";
   message += "In serial mode we only accept band/freq selection and rx/tx via serial</br>";
-  message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages (zachtek_update.sh uses this mode)</br>";
-  message += "In http mode we only accept band/freq selection and rx/tx via http messages (amp_control.sh uses this mode)</br></br>";
+  message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages</br>";
+  message += "In http mode we only accept band/freq selection and rx/tx via http messages</br>";
+  message += "In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)</br></br>";
+  message += "Example rigctld run command (TS-2000 has ID 2014):</br></br>";
+  message += "rigctld.exe -r COM18 -m 2014 -s 57600 -t 51111</br></br>";
   message += "If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled</br></br>";
   message += "If TX time exceeds ";
   message += (tx_limit / 100);
@@ -295,6 +432,8 @@ void getNetwork() {
   message += "\nMAC: ";
   message += WiFi.macAddress();
   message += "\nmDNS: xpa125b.local";
+  message += "\nRemote IP: ";
+  message += getRemoteIP();
   message += "\n";
   server.send(200, "text/plain; charset=UTF-8", message);
 }
@@ -310,13 +449,16 @@ void getTxBlockTimer() {
 }
 
 void setMode(String value) {
+   if ((value == "rigctl") && (!testRigctlServer())) {
+    return;
+   }
    mode = value;
    frequency = "0";
    char charMode[9];
    mode.toCharArray(charMode, 9);
    Serial.print("mode ");
    Serial.println(mode);
-   mqttClient.publish("xpa125b/mode", charMode, true);
+   pubsubClient.publish("xpa125b/mode", charMode, true);
    if ((mode == "mqtt") && (mqtt_enabled == 0)) {
      setMQTT("enable");
    }
@@ -380,7 +522,7 @@ void setBand(String band) {
     if ( current_band != previous_band ) {
       Serial.print("band ");
       Serial.println(bandChar);
-      mqttClient.publish("xpa125b/band", bandChar, true);
+      pubsubClient.publish("xpa125b/band", bandChar, true);
     }
     previous_band = bandInt; 
 }
@@ -422,10 +564,11 @@ bool regexMatch(char* value, char* regex) {
 }
 
 void setFreq(String freq) {
+ if ((freq != previous_frequency) && (freq != "error" )) {  
    frequency = freq;
    char charFreq[10];
    freq.toCharArray(charFreq, 10);
-   mqttClient.publish("xpa125b/frequency", charFreq, false);
+   pubsubClient.publish("xpa125b/frequency", charFreq, false);
    Serial.print("frequency ");
    Serial.println(frequency);
    if (regexMatch(charFreq, "^1......$")) {
@@ -452,7 +595,12 @@ void setFreq(String freq) {
     setBand("11");
    } else if (regexMatch(charFreq, "^28......$")) {
     setBand("10");
+   } else {
+    Serial.print("No matching band found for ");
+    Serial.println(frequency);
    }
+   previous_frequency = frequency;
+  }
 }
 
 void setState(String state) {
@@ -462,7 +610,7 @@ void setState(String state) {
     curState = "rx";
     if (current_state != previous_state) {
       Serial.println("state rx");
-      mqttClient.publish("xpa125b/state", "rx");
+      pubsubClient.publish("xpa125b/state", "rx");
     }
     previous_state = 0;
     tx_timer = 0;
@@ -473,7 +621,7 @@ void setState(String state) {
     curState = "tx";
     if (current_state != previous_state) {
       Serial.println("state tx");
-      mqttClient.publish("xpa125b/state", "tx");
+      pubsubClient.publish("xpa125b/state", "tx");
     }
     previous_state = 1;
   }
@@ -486,7 +634,7 @@ void setMQTT(String value) {
     Serial.println("MQTT enabled");
   } else if (value == "disable") {
     mqtt_enabled = false;
-    mqttClient.disconnect();
+    pubsubClient.disconnect();
     Serial.println("MQTT disabled");
   }
 }
@@ -550,6 +698,7 @@ void wifi(String state) {
 
 void setup(void) {
   Serial.begin(115200);
+  //Serial.setDebugOutput(true);
   Serial.println("");
 
   wifi("enable");
@@ -566,13 +715,13 @@ void setup(void) {
   analogWriteFreq(30000);
 
   if (mqtt_enabled == true) {
-    mqttClient.subscribe("xpa125b/#");
+    pubsubClient.subscribe("xpa125b/#");
     // update mqtt so it knows we are on the default startup state of RX
-    mqttClient.publish("xpa125b/state", "rx", true);
+    pubsubClient.publish("xpa125b/state", "rx", true);
     // update mqtt so it knows we are on the default startup band of 160m
-    mqttClient.publish("xpa125b/band", "160", true);
+    pubsubClient.publish("xpa125b/band", "160", true);
     // update mqtt so it knows we are on the default startup mode of analogue
-    mqttClient.publish("xpa125b/mode", "analogue", true);
+    pubsubClient.publish("xpa125b/mode", "analogue", true);
   }
 
   server.on("/", handleRoot);
@@ -611,6 +760,11 @@ void setup(void) {
        String value = (mqtt_enabled ? "enabled" : "disabled");
        server.send(200, "text/html; charset=UTF-8", value);
   });
+
+  server.on("/rigctl", [] () {
+       httpGetRigctlServer();
+  });
+  
 
   server.on("/setmode", []() {
     if ((server.method() == HTTP_POST) && (server.argName(0) == "mode")) {
@@ -668,6 +822,16 @@ void setup(void) {
      }
   });
 
+  server.on("/setrigctl", []() {
+    if (((server.method() == HTTP_POST) && (server.argName(0) == "address") && (server.argName(1) == "port"))) {
+       setRigctlAddress(server.arg(0));
+       setRigctlPort(server.arg(1));
+       httpGetRigctlServer();
+     } else {
+        server.send(405, "text/html; charset=UTF-8", "Must send a POST with arguments 'address' and 'port' with values");
+     }
+  });
+
   server.onNotFound(handleNotFound);
 
   webServer(true);
@@ -682,8 +846,9 @@ void setup(void) {
   Serial.println(current_state);
 
   // update mqtt with txtime / txblocktimer to 0 on start
-  mqttClient.publish("xpa125b/txtime", "0", false);
-  mqttClient.publish("xpa125b/txblocktimer", "0", false);
+  pubsubClient.publish("xpa125b/txtime", "0", false);
+  pubsubClient.publish("xpa125b/txblocktimer", "0", false);
+
 }
 
 void loop(void) {
@@ -691,7 +856,7 @@ void loop(void) {
   MDNS.update();
 
   mqttConnect();
-  mqttClient.loop();
+  pubsubClient.loop();
 
  if (Serial.available()) {
    serialValue = Serial.readStringUntil(serialEOL);
@@ -707,6 +872,10 @@ void loop(void) {
      setState(value);
    } else if (command == "setmqtt") {
      setMQTT(value);
+   } else if (command == "setrigctl") {
+    setRigctlAddress(getValue(serialValue,' ',1));
+    setRigctlPort(getValue(serialValue,' ',2));
+    Serial.println("rigctl_server " + getRigctlServer());
    } else if (command == "serialonly") {
      if (value == "true") {
       serialonly = true;
@@ -764,39 +933,69 @@ void loop(void) {
  }
 
  if ( curState == "tx" ) {
-  tx_timer++;
-  tx_seconds = (tx_timer / 100);
+  current_tx_millis = millis();
+  int difference = (current_tx_millis - previous_tx_millis);
+  int second = (difference / 1000);
+  if (second != tx_previous_seconds) {
+    tx_seconds++;
+    char charSeconds[4];
+    String strSeconds = String(tx_seconds);
+    strSeconds.toCharArray(charSeconds, 4);
+    pubsubClient.publish("xpa125b/txtime", charSeconds, false);
+    tx_previous_seconds=second;
+  }
+ } else {
+  tx_seconds=0;
+  if ( tx_seconds != tx_previous_seconds ) {
+    pubsubClient.publish("xpa125b/txtime", "0", false);
+  }
+  previous_tx_millis = current_tx_millis;
  }
 
- if ( tx_seconds != tx_previous_seconds ) {
-  char charSeconds[4];
-  String strSeconds = String(tx_seconds);
-  strSeconds.toCharArray(charSeconds, 4);
-  mqttClient.publish("xpa125b/txtime", charSeconds, false);
-  tx_previous_seconds = tx_seconds;
- }
-
- if ( tx_block_seconds != tx_block_previous_seconds ) {
-  char charSeconds[4];
-  String strSeconds = String(tx_block_seconds);
-  strSeconds.toCharArray(charSeconds, 4);
-  mqttClient.publish("xpa125b/txblocktimer", charSeconds, false);
-  tx_block_previous_seconds = tx_block_seconds;
- }
-
- if ( tx_timer >= tx_limit ) {
+ if ( tx_seconds >= tx_limit ) {
   Serial.println("txblocktimer start");
   setState("rx");
   tx_block_timer = tx_block_time; // set block timer 
  }
  
  if ( tx_block_timer >= 1 ) {
-   tx_block_timer--;
-   tx_block_seconds = (tx_block_timer / 100);
+   current_block_millis = millis();
+   int difference = (current_block_millis - previous_block_millis);
+   int second = (difference / 1000);
+   if (second != tx_block_previous_seconds) {
+    tx_block_timer--;
+    tx_block_seconds = tx_block_timer;
+    tx_block_previous_seconds=second;
+    char charSeconds[4];
+    String strSeconds = String(tx_block_seconds);
+    strSeconds.toCharArray(charSeconds, 4);
+    pubsubClient.publish("xpa125b/txblocktimer", charSeconds, false);
+    if ( tx_block_timer == 0 ) {
+    Serial.println("txblocktimer end");
+    } 
+   }
+ } else {
+   tx_block_seconds=0;
+   previous_block_millis = current_block_millis; 
  }
- if ( tx_block_timer == 1 ) { // should be zero but that would mean it triggers all the time
-   Serial.println("txblocktimer end");
+
+ if (mode == "rigctl") {
+  setFreq(sendRigctlCommand("f"));
+  String result=sendRigctlCommand("t");
+  if (result == "1") {
+    current_rigctl_rx = false;
+    if (current_rigctl_rx != previous_rigctl_rx) {
+      setState("tx");
+      previous_rigctl_rx = false;
+    }
+  } else if (result == "0") {
+    current_rigctl_rx = true;
+    if (current_rigctl_rx != previous_rigctl_rx) {
+      setState("rx");
+      previous_rigctl_rx = true;
+    }
+  }
  }
  
- delay(9); // makes the tx/block timers semi accurate and gives time for the ADCs to sort themselves out
+ delay(10); // so we dont go full throttle
 }
