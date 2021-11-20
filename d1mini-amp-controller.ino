@@ -13,12 +13,15 @@ const char* mqttpass = "";
 // default mode
 String mode = "analogue";
 
+// rigctl config
+bool rigctl_default_enable = false;
+String rigctl_default_address = "";
+String rigctl_default_port = "";
+int rigctl_timeout = 250;
+
 // TX blocker config in seconds
 int tx_limit = 300; // 300 = 5 mins 
 int tx_block_time = 60; // 60 = 1 minute
-
-// rigctl timeout in milliseconds
-int rigctl_timeout = 250;
 
 // *********** END CONFIG ***********
 
@@ -137,8 +140,6 @@ void mqttConnect() {
     if (pubsubClient.connect("xpa125b", mqttuser, mqttpass)) {
       Serial.println("MQTT connected"); 
       pubsubClient.subscribe("xpa125b/#");
-    } else {
-      Serial.println(pubsubClient.state());
     }
   }
 }
@@ -721,6 +722,12 @@ void setup(void) {
     pubsubClient.publish("xpa125b/band", "160", true);
     // update mqtt so it knows we are on the default startup mode of analogue
     pubsubClient.publish("xpa125b/mode", "analogue", true);
+  }
+
+  if (rigctl_default_enable) {
+    setRigctlAddress(rigctl_default_address);
+    setRigctlPort(rigctl_default_port);
+    testRigctlServer();
   }
 
   server.on("/", handleRoot);
