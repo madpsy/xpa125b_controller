@@ -34,3 +34,5 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
 `rigctld.exe -r COM18 -m 2014 -s 57600 -t 51111`
   
  In the above we are using `COM18` as the other end of the virtual com cable. `2014` is the rig ID for a Kenwood TS-2000 which SDR Console emulates. The port `51111` is what you would then set `rigctl_default_port` to.
+  
+  Other software such as SparkSDR (https://www.sparksdr.com/) has rigctld built in so no need to run the daemon - simply point the controller to the IP/port of SparkSDR directly. This is the ideal way to run the controller.
