@@ -41,6 +41,12 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
   Other software such as SparkSDR (https://www.sparksdr.com/) has rigctld built in so no need to run the daemon - simply point the controller to the IP/port of SparkSDR directly. This is the ideal way to run the controller.
   
+# Web Interface
+  
+A simple web interface is available on port 80 which allows access to basic functionality aswel as documentation.
+  
+![alt text](https://raw.githubusercontent.com/madpsy/xpa125b_controller/main/webinterface.png "wen")
+  
 # Valid serial commands (115200 baud):
 
 + serialonly [true|false] (disables analogue and wifi entirely)
