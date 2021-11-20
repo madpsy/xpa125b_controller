@@ -1,5 +1,5 @@
-# XPA125B Amplifier Controller
-Xiegu XPA125B control interface designed for a D1 Mini. This allows you to use virtual any rig, including SDRs, with this amplifier. Both PTT and automatic band selection is supported.
+# XPA125B Amplifier Network Controller
+Xiegu XPA125B network control interface designed for a D1 Mini. This allows you to use virtual any rig, including SDRs, with this amplifier. Both PTT and automatic band selection is supported. Although WiFi is supported the controller can also operate without it in `analogue` mode. This would enable you to use a Yaesu rig and have the benefit of automatic band selection. The primary use of the controller is to hook directly into `rigctld` https://hamlib.github.io/ meaning virtually any rig will work (albeit requiring the use of WiFi).
 
 Supported protocols:
 
@@ -8,21 +8,21 @@ Supported protocols:
 + Web Interface
 + REST
 + MQTT
-+ Rigctl
++ Rigctld
 
 The top of the file contains config options which need set first:
 
 + ssid - your WiFi SSID
 + password - your WiFi password
 
-If you want to enable MQTT set  to true and set the following:
+If you want to enable MQTT set the following:
 
 + mqtt_enabled = true
 + mqttserver = <host>  (MQTT server hostname or IP address)
 + mqttuser = <username>  (MQTT username)
 + mqttpass = <password>  (MQTT password)
 
-To make rigctl default on boot, ensure WiFi credentials are filled in and also set:
+To make rigctl default on boot first ensure WiFi credentials are filled in and also set:
 
 +  mode = rigctl
 +  rigctl_default_enable = true
