@@ -1,5 +1,5 @@
-# xpa125b_controller
-Xiegu XPA125B control interface designed for a D1 Mini.
+# XPA125B Amplifier Controller
+Xiegu XPA125B control interface designed for a D1 Mini. This allows you to use virtual any rig, including SDRs, with this amplifier. Both PTT and automatic band selection is supported.
 
 Supported protocols:
 
