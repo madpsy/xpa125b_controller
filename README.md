@@ -93,5 +93,5 @@ You can always use 'setmode' with serial/http/mqtt reguardless of current mode e
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled
 
-If TX time exceeds 3 seconds then TX will be blocked for 0 seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
+If TX time exceeds 300 seconds then TX will be blocked for 60 seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
 
