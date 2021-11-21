@@ -18,6 +18,8 @@ bool rigctl_default_enable = false;
 String rigctl_default_address = "";
 String rigctl_default_port = "";
 int rigctl_timeout = 250;
+int rigctl_delay = 0;
+int rigctl_debug = false;
 
 // TX blocker config in seconds
 int tx_limit = 300; // 300 = 5 mins 
@@ -243,36 +245,62 @@ bool testRigctlServer() {
   }
 }
 
-String sendRigctlCommand(char* command) {
-    
+bool connectRigctl() {
   if ((rigctl_address_set) && (rigctl_port_set)) {
-    if (!rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
-      Serial.println("rigctl connection failed");
-    } else {
-      rigctlClient.print(command);
-      rigctlClient.print("\n");
-    
-      unsigned long timeout = millis();
-      while (rigctlClient.available() == 0) {
-       if (millis() - timeout > rigctl_timeout) {
-         //Serial.print("rigctl timeout for command: ");
-         //Serial.println(command);
-         rigctlClient.stop();
-         return("error");
-        }
-     }
-
-      String response;
-      while(rigctlClient.available()){
-        char ch = static_cast<char>(rigctlClient.read());
-       response += String(ch);
+    //Serial.println("connecting to rigctl");
+    if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
+      if (rigctl_debug) {
+        Serial.println("rigctl connection success");
       }
-      //rigctlClient.stop();
-      int length = response.length();
-      response.remove(length - 1, 1);
-      return(response);
+      return true;
+    } else {
+      Serial.println("rigctl connection failed");
+      return false;
     }
+  } else {
+    Serial.println("rigctl address and port not set");
+    return false;
   }
+}
+
+String sendRigctlCommand(char* command) {
+  
+  if (!rigctlClient.connected()) {
+      connectRigctl();
+  }
+  if (rigctlClient.connected()) {
+        rigctlClient.print(command);
+        rigctlClient.print("\n");
+        unsigned long timeout = millis();
+        while (rigctlClient.available() == 0) {
+         if (millis() - timeout > rigctl_timeout) {
+          // we must stop the client after timeout (causing a reconnect) otherwise data backs up in the buffer and is read on the next
+          // iteration, causing e.g. the ptt status to be concatenated with the frequency
+          // set rigctl_debug to true if rigctl appears to be doing nothing yet the connection test claims success
+          if (rigctl_debug) {
+            Serial.println("rigctl timed out"); 
+          }
+          rigctlClient.stop();
+          return("error");
+          }
+        }
+
+        String response;
+        while(rigctlClient.available()){
+          char ch = static_cast<char>(rigctlClient.read());
+          if (isDigit(ch)) {
+            response += String(ch);
+          }
+        }
+        // no longer required as isDigit() strips any nonsense
+        // int length = response.length();
+        // response.remove(length - 1, 1);
+        delay(rigctl_delay);
+        //rigctlClient.stop();
+        return(response);
+    } else {
+      return "error";
+    }
 }
 
 void handleRoot() {
@@ -564,7 +592,7 @@ bool regexMatch(char* value, char* regex) {
 }
 
 void setFreq(String freq) {
- if ((freq != previous_frequency) && (freq != "error" )) {  
+ if (((freq != previous_frequency) && (freq != "error" ) && (freq != "0")))  {  
    frequency = freq;
    char charFreq[10];
    freq.toCharArray(charFreq, 10);
@@ -720,9 +748,9 @@ void setup(void) {
     pubsubClient.publish("xpa125b/band", "160", true);
     pubsubClient.publish("xpa125b/txtime", "0", false);
     pubsubClient.publish("xpa125b/txblocktimer", "0", false);
-    char value[10];
-    mode.toCharArray(value, 10);
-    pubsubClient.publish("xpa125b/mode", value, true);
+    char modeChar[10];
+    mode.toCharArray(modeChar, 10);
+    pubsubClient.publish("xpa125b/mode", modeChar, true);
   }
 
   if (rigctl_default_enable) {
@@ -851,7 +879,6 @@ void setup(void) {
   Serial.println(frequency);
   Serial.print("state ");
   Serial.println(current_state);
-
 }
 
 void loop(void) {
@@ -983,15 +1010,18 @@ void loop(void) {
  }
 
  if (mode == "rigctl") {
-  setFreq(sendRigctlCommand("f"));
-  String result=sendRigctlCommand("t");
-  if (result == "1") {
+  String f_result=sendRigctlCommand("f");
+  if (f_result != "error") {
+    setFreq(f_result);
+  }
+  String t_result=sendRigctlCommand("t");
+  if (t_result == "1") {
     current_rigctl_rx = false;
     if (current_rigctl_rx != previous_rigctl_rx) {
       setState("tx");
       previous_rigctl_rx = false;
     }
-  } else if (result == "0") {
+  } else if (t_result == "0") {
     current_rigctl_rx = true;
     if (current_rigctl_rx != previous_rigctl_rx) {
       setState("rx");
