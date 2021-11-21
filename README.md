@@ -93,7 +93,7 @@ A simple web interface is available on port 80 which allows access to basic func
 + setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)
 + setrigctlptt ptt=[0|1] (rigctl only)
   
-Note: There are no commands to get current states over serial. The reason being all state changes are sent over serial when they occur so you just need to parse them.
+Note: There are no commands to get current states over serial. The reason being all state changes are printed when they occur so you just need to parse and track them as they appear.
 
 # Valid HTTP POST paths:
 
