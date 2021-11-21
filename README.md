@@ -54,7 +54,7 @@ A simple web interface is available on port 80 which allows access to basic func
 # Valid serial commands (115200 baud):
 
 + serialonly [true|false] (disables analogue and wifi entirely)
-+ setmode [analogue|serial|http|mqtt|rigctl]
++ setmode [analogue|serial|http|mqtt|rigctl|none]
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
 + setfreq [frequency in Hz]
@@ -63,7 +63,7 @@ A simple web interface is available on port 80 which allows access to basic func
 
 # Valid HTTP POST paths:
 
-+ /setmode mode=[analogue|serial|http|mqtt|rigctl]
++ /setmode mode=[analogue|serial|http|mqtt|rigctl|none]
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
@@ -100,6 +100,7 @@ You can always use 'setmode' with serial/http/mqtt reguardless of current mode e
 + In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
 + In http mode we only accept band/freq selection and rx/tx via http messages
 + In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)
++ In none mode then no control is possible
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled
 
