@@ -203,3 +203,10 @@ Node-RED has built in support for MQTT. You can subscribe to the relevant topics
 This is particularly useful if you want to trigger other events based on the current state. An example might be to illuminate a light when you are transmitting or even send a notification if the TX Block Timer is activated.
   
 In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power to the amplifier is removed via a 'smart' plug. The basis being if TX exceeds the threshold then something must be amiss with the system so best to cut the power and find out what went wrong.
+  
+# To Do
+  
++ Reduce the excessive use of `Strings` in the code
++ Add support for Icom CI-V via `analogue` mode (Icom radios are currently only supported via rigctl)
++ Provide schematics for the interface board to the XPA125B amplifier
++ Add instructions how to adapt for other amplifiers
