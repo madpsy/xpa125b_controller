@@ -92,6 +92,8 @@ A simple web interface is available on port 80 which allows access to basic func
 + setrigctlfreq freq=[frequency in Hz] (rigctl only)
 + setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)
 + setrigctlptt ptt=[0|1] (rigctl only)
+  
+Note: There are no commmands to 'get' current state over serial. The reason being all state changes are sent over serial when they occur so you just need to parse them.
 
 # Valid HTTP POST paths:
 
