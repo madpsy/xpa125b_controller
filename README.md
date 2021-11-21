@@ -139,7 +139,16 @@ When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor analogue c
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled
 
-If TX time exceeds 300 seconds then TX will be blocked for 60 seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
+# TX Block
+  
+If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
+
+In every mode this tells the amp to switch to RX. In rigctl mode this also tells the radio itself to stop TX'ing.
+  
+To configure the timings, just set the following in the config:
+ 
++ `tx_limit` (maximum allowed TX time)
++ `tx_block_time` (how long to block TX for)
 
 # Home Assistant
   
