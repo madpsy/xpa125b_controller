@@ -45,7 +45,7 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
   Other software such as SparkSDR (https://www.sparksdr.com/) has rigctld built in so no need to run the daemon - simply point the controller to the IP/port of SparkSDR directly. This is the ideal way to run the controller.
   
- You can control basic functions of the rig via the REST and MQTT APIs. Namely frequency, mode and PTT. For example, to set the current frequency of the rig via REST:
+ You can control basic functions of the rig ('rig' could also be SDR Console/SparkSDR etc) via the REST and MQTT APIs. Namely frequency, mode and PTT. For example, to set the current frequency of the rig via REST:
   
   `curl -s -d 'freq=7074000' http://192.168.0.180/setrigctlfreq`
   
