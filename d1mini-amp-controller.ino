@@ -17,7 +17,7 @@ String mode = "analogue";
 bool rigctl_default_enable = false;
 String rigctl_default_address = "";
 String rigctl_default_port = "";
-int rigctl_timeout = 250;
+int rigctl_timeout = 500;
 int rigctl_delay = 0;
 int rigctl_debug = false;
 
@@ -75,6 +75,8 @@ String frequency = "0";
 String previous_frequency = "0";
 String rigctl_address;
 String rigctl_port;
+String current_rigctl_mode = "none";
+String previous_rigctl_mode = "none";
 IPAddress remote_ip;
 IPAddress rigctl_ipaddress;
 int rigctl_portnumber;
@@ -135,6 +137,7 @@ void webServer(bool value) {
 void mqttConnect() {
   pubsubClient.setClient(mqttClient);
   pubsubClient.setServer(mqttserver,1883);
+  pubsubClient.setCallback(callback);
   // pubsubClient.connected condition here prevents a crash which can happen if already connected
   if (((mqtt_enabled == true) && (!pubsubClient.connected()) && (WiFi.status() == WL_CONNECTED))) {
     delay(100); // stops it trying to reconnect as fast as the loop can go
@@ -175,6 +178,10 @@ void getBand() {
 
 void getFrequency() {
   server.send(200, "text/html; charset=UTF-8", frequency);
+}
+
+void httpGetRigctlMode() {
+  server.send(200, "text/html; charset=UTF-8", current_rigctl_mode);
 }
 
 String getRigctlAddress() {
@@ -300,19 +307,67 @@ String sendRigctlCommand(char* command) {
         String response;
         while(rigctlClient.available()){
           char ch = static_cast<char>(rigctlClient.read());
-          if (isDigit(ch)) {
-            response += String(ch);
+          response += String(ch);
+          if (ch == '\n') {
+             while(rigctlClient.available()){
+               // gobble the rest up but do nothing with it
+               // this was originally for when getting the current mode ('m') as it also returns the filter width but we don't care about that
+               static_cast<char>(rigctlClient.read());
+             }
           }
         }
-        // no longer required as isDigit() strips any nonsense
-        // int length = response.length();
-        // response.remove(length - 1, 1);
+        int length = response.length();
+        response.remove(length - 1, 1);
         delay(rigctl_delay);
-        //rigctlClient.stop();
+        //Serial.println(response);
         return(response);
     } else {
       return "error";
     }
+}
+
+void setRigctlFreq(String frequency) {
+     Serial.print("rigctlfreq: ");
+     Serial.println(frequency);
+     String cmd  = "F "; cmd += (frequency);
+     char cmdChar[20];
+     cmd.toCharArray(cmdChar, 20);
+     sendRigctlCommand(cmdChar);
+}
+
+void httpSetRigctlFreq(String value) {
+  server.send(200, "text/html; charset=UTF-8", value);
+  setRigctlFreq(value);
+}
+
+void setRigctlMode(String mode) {
+     String cmd  = "M "; cmd += (mode);
+     char cmdChar[10];
+     cmd.toCharArray(cmdChar, 10);
+     sendRigctlCommand(cmdChar);
+}
+
+void httpSetRigctlMode(String value) {
+  server.send(200, "text/html; charset=UTF-8", value);
+  setRigctlMode(value);
+}
+
+void setRigctlPtt(String ptt) {
+  if ((ptt != "0") && (tx_block_timer != 0)) {
+     return;
+  } else {
+     Serial.print("rigctlptt: ");
+     Serial.println(ptt);
+     String cmd  = "T "; cmd += (ptt);
+     char cmdChar[5];
+     cmd.toCharArray(cmdChar, 5);
+     sendRigctlCommand(cmdChar);
+  }
+}
+
+void httpSetRigctlPtt(String value) {
+  server.send(200, "text/html; charset=UTF-8", value);
+  setRigctlPtt(value);
 }
 
 void handleRoot() {
@@ -320,16 +375,16 @@ void handleRoot() {
   message += "<script>";
   message += "var xhr = new XMLHttpRequest();";
   message += "function mouseDown() {";
-  message += "document.getElementById('demo').value = 'PTT TX';";
-  message += "xhr.open('POST', '/setstate', true);";
+  message += "document.getElementById('ptt').value = 'PTT TX';";
+  message += "xhr.open('POST', '/setrigctlptt', true);";
   message += "xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');";
-  message += "xhr.send('state=tx');";
+  message += "xhr.send('ptt=1');";
   message += "}";
   message += "function mouseUp() {";
-  message += "document.getElementById('demo').value = 'PTT RX';";
-  message += "xhr.open('POST', '/setstate', true);";
+  message += "document.getElementById('ptt').value = 'PTT RX';";
+  message += "xhr.open('POST', '/setrigctlptt', true);";
   message += "xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');";
-  message += "xhr.send('state=rx');";
+  message += "xhr.send('ptt=0');";
   message += "}";
   message += "</script>";
   message += "Xiegu XPA125B Controller</br></br>";
@@ -360,7 +415,6 @@ void handleRoot() {
   message += "</select>";
   message += "<button name='band'>Set Band</button>";
   message += "</form>";
-  message +="<input id='demo' type='button' value='PTT RX' onmouseup='mouseUp();' onmousedown='mouseDown();'></br></br>";
   message += "<form action='/setmqtt' method='post' target='response'>";
   message += "<button name='mqtt' value='enable'>Enable MQTT</button>";
   message += "</form>";
@@ -377,6 +431,24 @@ void handleRoot() {
   message += "'>";
   message += "<button>Set/Test</button>";
   message += "</form>";
+  message += "<form action='/setrigctlmode' method='post' target='response'>";
+  message += "<select name='mode'>";
+  message += "<option value='USB'>USB</option>";
+  message += "<option value='LSB'>LSB</option>";
+  message += "<option value='FM'>FM</option>";
+  message += "<option value='AM'>AM</option>";
+  message += "<option value='DigiU'>DigiU</option>";
+  message += "<option value='FT8'>FT8</option>";
+  message += "</select>";
+  message += "<button name='mode'>Rigctl Mode</button>";
+  message += "</form>";
+  message += "<form action='/setrigctlfreq' method='post' target='response'>";
+  message += "<input type='text' size='10' maxlength='10' name='freq' value='";
+  message += frequency;
+  message += "'>";
+  message += "<button name='freq'>Rigctl Frequency</button>";
+  message += "</form>";
+  message +="<input id='ptt' type='button' value='PTT RX' onmouseup='mouseUp();' onmousedown='mouseDown();'></br></br>";
   message += "Last Response: ";
   message += "<iframe name='response' id='response' scrolling='no' frameBorder='0' width=400 height=25></iframe></br>";
   message += "Current State: ";
@@ -389,14 +461,20 @@ void handleRoot() {
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
   message += "setmqtt [enable|disable]</br>";
-  message += "setrigctl [address] [port]</br></br>";
+  message += "setrigctl [address] [port]</br>";
+  message += "setrigctlfreq freq=[frequency in Hz] (rigctl only)</br>";
+  message += "setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
+  message += "setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
   message += "/setmode mode=[analogue|serial|http|mqtt|rigctl|none]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
   message += "/setmqtt mqtt=[enable|disable] (only available via http)</br>";
-  message += "/setrigctl address=[rigctl IP address] port=[rigctl port] (http only)</br></br>";
+  message += "/setrigctl address=[rigctl IP address] port=[rigctl port] (http only)</br>";
+  message += "/setrigctlfreq freq=[frequency in Hz] (rigctl only)</br>";
+  message += "/setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
+  message += "/setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP GET paths:</br></br>";
   message += "<a href='/mode'>/mode</a> (show current mode)</br>";
   message += "<a href='/state'>/state</a> (show current state)</br>";
@@ -407,6 +485,7 @@ void handleRoot() {
   message += "<a href='/network'>/network</a> (show network details)</br>";
   message += "<a href='/mqtt'>/mqtt</a> (show if mqtt is enabled - only available via http)</br>";
   message += "<a href='/rigctl'>/rigctl</a> (show rigctl server and performs connection test - only available via http)</br>";
+  message += "<a href='/rigctlmode'>/rigctlmode</a> (show mode the rigctl radio is set to (FM, USB etc)</br>";
   message += "<a href='/status'>/status</a> (show status summary in HTML - only available via http)</br></br>";
   message += "MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the message is the values in [])</br></br>";
   message += "Examples: (Note: mDNS should be xpa125b.local)</br></br>";
@@ -424,7 +503,7 @@ void handleRoot() {
   message += "In serial mode we only accept band/freq selection and rx/tx via serial</br>";
   message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages</br>";
   message += "In http mode we only accept band/freq selection and rx/tx via http messages</br>";
-  message += "In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)</br>";
+  message += "In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate.</br>";
   message += "In none mode then no control is possible</br></br>";
   message += "Example rigctld run command (TS-2000 has ID 2014):</br></br>";
   message += "rigctld.exe -r COM18 -m 2014 -s 57600 -t 51111</br></br>";
@@ -448,6 +527,8 @@ void getStatus() {
   message += frequency;
   message += "&nbsp State: ";
   message += curState;
+  message += "&nbsp Rig Mode: ";
+  message += current_rigctl_mode;
   message += "&nbsp TX Time: ";
   message += tx_seconds;
   message += "&nbsp TX Blocker: ";
@@ -813,7 +894,10 @@ void setup(void) {
   server.on("/rigctl", [] () {
        httpGetRigctlServer();
   });
-  
+
+  server.on("/rigctlmode", [] () {
+       httpGetRigctlMode();
+  });
 
   server.on("/setmode", []() {
     if ((server.method() == HTTP_POST) && (server.argName(0) == "mode")) {
@@ -881,6 +965,46 @@ void setup(void) {
      }
   });
 
+  
+  server.on("/setrigctlfreq", []() {
+    if (mode == "rigctl") {
+     if ((server.method() == HTTP_POST) && (server.argName(0) == "freq")) {
+       String freq = server.arg(0);
+       httpSetRigctlFreq(freq);
+     } else {
+        server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'freq' and a value");
+     }
+    } else {
+      server.send(403, "text/html; charset=UTF-8", "rigctl is not current mode");
+    }
+  });
+
+  server.on("/setrigctlmode", []() {
+    if (mode == "rigctl") {
+     if ((server.method() == HTTP_POST) && (server.argName(0) == "mode")) {
+       String mode = server.arg(0);
+       httpSetRigctlMode(mode);
+     } else {
+        server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'mode' and a value");
+     }
+    } else {
+      server.send(403, "text/html; charset=UTF-8", "rigctl is not current mode");
+    }
+  });
+
+  server.on("/setrigctlptt", []() {
+    if (mode == "rigctl") {
+     if ((server.method() == HTTP_POST) && (server.argName(0) == "ptt")) {
+       String ptt = server.arg(0);
+       httpSetRigctlPtt(ptt);
+     } else {
+        server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'ptt' and a value");
+     }
+    } else {
+      server.send(403, "text/html; charset=UTF-8", "rigctl is not current mode");
+    }
+  });
+
   server.onNotFound(handleNotFound);
 
   webServer(true);
@@ -912,6 +1036,12 @@ void loop(void) {
      setBand(value);
    } else if ((command == "setfreq") && (mode == "serial")) {
      setFreq(value);
+   } else if ((command == "setrigctlfreq") && (mode == "rigctl")) {
+     setRigctlFreq(value);
+   } else if ((command == "setrigctlmode") && (mode == "rigctl")) {
+     setRigctlMode(value);
+   } else if ((command == "setrigctlptt") && (mode == "rigctl")) {
+     setRigctlPtt(value);
    } else if ((command == "setstate") && (mode == "serial")) {
      setState(value);
    } else if (command == "setmqtt") {
@@ -954,6 +1084,7 @@ void loop(void) {
 
  // mqtt subscribed messages
  if(Rflag) {
+   //Serial.println("MQTT message recieved");
    // reset Rflag
    Rflag=false;
    // convert from char array to String
@@ -973,6 +1104,12 @@ void loop(void) {
      setState(message);
    } else if ( topic == "setmode" ) {
      setMode(message);
+   } else if ((topic == "setrigctlfreq") && (mode == "rigctl")) {
+     setRigctlFreq(message);
+   } else if ((topic == "setrigctlmode") && (mode == "rigctl")) {
+     setRigctlMode(message);
+   } else if ((topic == "setrigctlptt") && (mode == "rigctl")) {
+     setRigctlPtt(message);
    }
  }
 
@@ -992,6 +1129,7 @@ void loop(void) {
   tx_seconds=0;
   if ( tx_seconds != tx_previous_seconds ) {
     pubsubClient.publish("xpa125b/txtime", "0", false);
+    tx_previous_seconds=0;
   }
   previous_tx_millis = current_tx_millis;
  }
@@ -999,6 +1137,9 @@ void loop(void) {
  if ( tx_seconds >= tx_limit ) {
   Serial.println("txblocktimer start");
   setState("rx");
+  if (mode == "rigctl") {
+    setRigctlPtt("0");
+  }
   tx_block_timer = tx_block_time; // set block timer 
  }
  
@@ -1027,6 +1168,18 @@ void loop(void) {
   String f_result=sendRigctlCommand("f");
   if (f_result != "error") {
     setFreq(f_result);
+  }
+  String m_result=sendRigctlCommand("m");
+  if (m_result != "error") {
+    current_rigctl_mode = m_result;
+    if (current_rigctl_mode != previous_rigctl_mode) {
+       char modeChar[10];
+       current_rigctl_mode.toCharArray(modeChar, 10);
+       pubsubClient.publish("xpa125b/rigctlmode", modeChar, true);
+       Serial.print("rigctlmode ");
+       Serial.println(current_rigctl_mode);
+       previous_rigctl_mode = m_result;
+    }
   }
   String t_result=sendRigctlCommand("t");
   if (t_result == "1") {
