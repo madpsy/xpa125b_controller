@@ -12,7 +12,7 @@ Supported APIs/protocols:
 + MQTT
 + Rigctld
 
-Even if a particular API isn't the current active mode for control purposes it can still be consumed for state. For example, providing MQTT is configured and enabled it will still publish events such as band/frequency and PTT changes. This allows the current state to be easily consumed by other MQTT compatible software.
+Even if a particular API isn't the current active mode for control purposes it can still be consumed for state. For example, providing MQTT is configured and enabled it will still publish events such as band/frequency and PTT changes. This allows the current state to be easily consumed by other MQTT compatible software. Similarly for REST, you can always `GET /state` to find out the current PTT state.
 
 # Configuration
 
@@ -75,7 +75,7 @@ A simple web interface is available on port 80 which allows access to basic func
 # Valid HTTP GET paths:
 
 + /mode (show current mode)
-+ /state (show current state)
++ /state (show current PTT state)
 + /band (show current band)
 + /frequency (show current frequency - must have been set)
 + /txtime (show tx time in seconds)
