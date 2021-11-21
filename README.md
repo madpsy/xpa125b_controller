@@ -21,7 +21,7 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 + Use any Yaesu radio with an XPA125B Amplifier without network
 + Use any hamlib compatible radio with an XPA125B Amplifier
 + Provide a Web/REST/MQTT/Serial API interface to rigctl
-+ Allow automation via NodeRED to any hamlib compatible radio
++ Allow automation via Node-RED to any hamlib compatible radio
 + Expand to support Icom and other manufactures if desired
 
 # Configuration
@@ -72,7 +72,7 @@ As well as allowing control of the amplifier by publishing MQTT events the syste
   1. Configure MQTT server/username/password in the config (ensure `mqtt_enabled` is `true`)
   2. Configure Rigctl settings in the config and optionally make it the default mode
   
-Now every state change will be published as an event to MQTT to be consumed by other software, such as Node Red (https://nodered.org/) to trigger other actions. You could go wild and use this to have a big LED matrix display showing the current frequency and PTT state.
+Now every state change will be published as an event to MQTT to be consumed by other software, such as Node-RED (https://nodered.org/) to trigger other actions. You could go wild and use this to have a big LED matrix display showing the current frequency and PTT state.
   
 # Web Interface
   
@@ -150,7 +150,7 @@ To configure the timings, just set the following in the config:
 + `tx_limit` (maximum allowed TX time)
 + `tx_block_time` (how long to block TX for)
 
-# Home Assistant / NodeRED
+# Home Assistant / Node-RED
   
 If you use Home Assistant (https://www.home-assistant.io/) you can add sensors via MQTT as follows:
   
@@ -196,7 +196,7 @@ If you use Home Assistant (https://www.home-assistant.io/) you can add sensors v
   
   ![ha](https://raw.githubusercontent.com/madpsy/xpa125b_controller/main/ha.png "ha")
   
-NodeRED has built in support for MQTT. You can subscribe to the relevant topics and easily create automations based on these. Of course you can also send commands assuming you are in MQTT mode. 
+Node-RED has built in support for MQTT. You can subscribe to the relevant topics and easily create automations based on these. Of course you can also send commands assuming you are in MQTT mode. 
 
 This is particularly useful if you want to trigger other events based on the current state. An example might be to illuminate a light when you are transmitting or even send a notification if the TX Block Timer is activated.
   
