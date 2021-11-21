@@ -44,6 +44,12 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
  In the above we are using `COM18` as the other end of the virtual com cable. `2014` is the rig ID for a Kenwood TS-2000 which SDR Console emulates. The port `51111` is what you would then set `rigctl_default_port` to.
   
   Other software such as SparkSDR (https://www.sparksdr.com/) has rigctld built in so no need to run the daemon - simply point the controller to the IP/port of SparkSDR directly. This is the ideal way to run the controller.
+  
+ You can control basic functions of the rig via the REST and MQTT APIs. Namely frequency, mode and PTT. For example, to set the current frequency of the rig via REST:
+  
+  `curl -s -d 'freq=7074000' http://192.168.0.180/setrigctlfreq`
+  
+ In essense this operates as a REST/MQTT/Serial API translation layer to rigctl.
  
  If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873
   
@@ -71,6 +77,9 @@ A simple web interface is available on port 80 which allows access to basic func
 + setfreq [frequency in Hz]
 + setmqtt [enable|disable]
 + setrigctl [address] [port]
++ setrigctlfreq freq=[frequency in Hz] (rigctl only)
++ setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)
++ setrigctlptt ptt=[0|1] (rigctl only)
 
 # Valid HTTP POST paths:
 
@@ -80,6 +89,9 @@ A simple web interface is available on port 80 which allows access to basic func
 + /setfreq freq=[frequency in Hz]
 + /setmqtt mqtt=[enable|disable] (only available via http)
 + /setrigctl address=[rigctl IP address] port=[rigctl port] (http only)
++ /setrigctlfreq freq=[frequency in Hz] (rigctl only)
++ /setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)
++ /setrigctlptt ptt=[0|1] (rigctl only)
 
 # Valid HTTP GET paths:
 
@@ -92,6 +104,7 @@ A simple web interface is available on port 80 which allows access to basic func
 + /network (show network details)
 + /mqtt (show if mqtt is enabled - only available via http)
 + /rigctl (show rigctl server and performs connection test - only available via http)
++ /rigctlmode (show mode the rigctl radio is set to (FM, USB etc)
 + /status (show status summary in HTML - only available via http)
 
 MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the message is the values in [])
