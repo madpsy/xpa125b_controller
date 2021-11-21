@@ -12,6 +12,8 @@ Supported APIs/protocols:
 + MQTT
 + Rigctld
 
+Providing MQTT is configured and enabled, even if it isn't the current active mode, it will still publish events such as band/frequency and PTT. This allows the current state to be easily consumed by other MQTT compatible software.
+
 # Configuration
 
 The top of the file contains config options which need set first:
