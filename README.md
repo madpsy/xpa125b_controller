@@ -123,7 +123,9 @@ Note: There are no commands to get current states over serial. The reason being 
 
 MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the message is the values in [])
 
-Examples: (Note: mDNS should be xpa125b.local)
+# Example API calls
+
+Note: mDNS should be xpa125b.local
 
 + `curl -s -d 'mode=http' http://xpa125b.local/setmode`
 + `curl -s http://xpa125b.local/txtime`
