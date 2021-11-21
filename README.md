@@ -150,7 +150,7 @@ To configure the timings, just set the following in the config:
 + `tx_limit` (maximum allowed TX time)
 + `tx_block_time` (how long to block TX for)
 
-# Home Assistant
+# Home Assistant / NodeRED
   
 If you use Home Assistant (https://www.home-assistant.io/) you can add sensors via MQTT as follows:
   
@@ -195,3 +195,7 @@ If you use Home Assistant (https://www.home-assistant.io/) you can add sensors v
   Then create some cards on a dashboard and it will look something like this:
   
   ![ha](https://raw.githubusercontent.com/madpsy/xpa125b_controller/main/ha.png "ha")
+  
+NodeRED has built in support for MQTT. You can subscribe to the relevant topics and easily create automations based on these. Of course you can also send commands assuming you are in MQTT mode. 
+
+This is particularly useful if you want to trigger other events based on the current state. An example might be to illuminate a light when you are transmitting or even send a notification if the TX Block Timer is activated.
