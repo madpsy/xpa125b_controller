@@ -230,13 +230,25 @@ void setRigctlPort(String port) {
 bool testRigctlServer() {
   if ((rigctl_address_set) && (rigctl_port_set)) {
    if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
+    if ((sendRigctlCommand("t") == "0") || (sendRigctlCommand("t") == "1")) {
+      Serial.print("connection to rigctl server succeeded ");
+      Serial.println(rigctl_address + ":" + rigctl_port);
+      return true;
+    } else {
+      Serial.print("connection to rigctl succeeded but PTT status failed to return ");
+      Serial.println(rigctl_address + ":" + rigctl_port);
+      if (mode == "rigctl") {
+        setMode("none");
+      }
+      return false;
+    }
     rigctlClient.stop();
-    Serial.print("connection to rigctl server succeeded ");
-    Serial.println(rigctl_address + ":" + rigctl_port);
-    return true;
    } else {
     Serial.print("connection to rigctl server failed ");
     Serial.println(rigctl_address + ":" + rigctl_port);
+    if (mode == "rigctl") {
+      setMode("none");
+    }
     return false;
    }
   } else {
@@ -328,6 +340,7 @@ void handleRoot() {
   message += "<option value='serial'>Serial</option>";
   message += "<option value='http'>HTTP</option>";
   message += "<option value='mqtt'>MQTT</option>";
+  message += "<option value='none'>None</option>";
   message += "</select>";
   message += "<button name='mode'>Set Mode</button>";
   message += "</form>";
@@ -371,14 +384,14 @@ void handleRoot() {
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
   message += "serialonly [true|false] (disables analogue and wifi entirely)</br>";
-  message += "setmode [analogue|serial|http|mqtt|rigctl]</br>";
+  message += "setmode [analogue|serial|http|mqtt|rigctl|none]</br>";
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
   message += "setmqtt [enable|disable]</br>";
   message += "setrigctl [address] [port]</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
-  message += "/setmode mode=[analogue|serial|http|mqtt|rigctl]</br>";
+  message += "/setmode mode=[analogue|serial|http|mqtt|rigctl|none]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
@@ -411,7 +424,8 @@ void handleRoot() {
   message += "In serial mode we only accept band/freq selection and rx/tx via serial</br>";
   message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages</br>";
   message += "In http mode we only accept band/freq selection and rx/tx via http messages</br>";
-  message += "In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)</br></br>";
+  message += "In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)</br>";
+  message += "In none mode then no control is possible</br></br>";
   message += "Example rigctld run command (TS-2000 has ID 2014):</br></br>";
   message += "rigctld.exe -r COM18 -m 2014 -s 57600 -t 51111</br></br>";
   message += "If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled</br></br>";
