@@ -124,7 +124,7 @@ When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor analogue c
 + In serial mode we only accept band/freq selection and rx/tx via serial
 + In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
 + In http mode we only accept band/freq selection and rx/tx via http messages
-+ In rigctl mode we only accept band/freq selection and rx/tx via rigctl (server connection must succeed for this mode to activate)
++ In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig itself in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate)
 + In none mode then no control is possible
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled
