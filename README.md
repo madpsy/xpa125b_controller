@@ -14,6 +14,16 @@ Supported APIs/protocols:
 
 Even if a particular API isn't the current active mode for control purposes it can still be consumed for state. For example, providing MQTT is configured and enabled it will still publish events such as band/frequency and PTT changes. This allows the current state to be easily consumed by other MQTT compatible software. Similarly for REST, you can always `GET /state` to find out the current PTT state.
 
+# Use Cases
+
+This project has grown arms and legs and is now a powerful tool way beyond its initial intended use. The most useful feature is providing multiple APIs on top of rigctl to allow integration into almost any custom software.
+
++ Use any Yaesu radio with an XPA125B Amplifier without network
++ Use any hamlib compatible radio with an XPA125B Amplifier
++ Provide a Web/REST/MQTT/Serial API interface to rigctl
++ Allow automation via NodeRED to any hamlib compatible radio
++ Expand to support Icom and other manufactures if desired
+
 # Configuration
 
 The top of the file contains config options which need set first:
