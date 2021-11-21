@@ -49,7 +49,7 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
  You can control basic functions of the rig ('rig' could also be SDR Console/SparkSDR etc) via the REST and MQTT APIs. Namely frequency, mode and PTT. For example, to set the current frequency of the rig via REST:
   
-  `curl -s -d 'freq=7074000' http://192.168.0.180/setrigctlfreq`
+  `curl -s -d 'freq=7074000' http://xpa125b.local/setrigctlfreq`
   
  In essense this operates as a REST/MQTT/Serial API translation layer to rigctl.
  
@@ -113,8 +113,8 @@ MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the me
 
 Examples: (Note: mDNS should be xpa125b.local)
 
-+ `curl -s -d 'mode=http' http://192.168.0.180/setmode`
-+ `curl -s http://192.168.0.180/txtime`
++ `curl -s -d 'mode=http' http://xpa125b.local/setmode`
++ `curl -s http://xpa125b.local/txtime`
 + `mosquitto_pub -h hostname -u username -P password -t xpa125b/setmode -m http`
 + `mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime`
 
