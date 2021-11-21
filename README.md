@@ -160,6 +160,9 @@ If you use Home Assistant (https://www.home-assistant.io/) you can add sensors v
   name: "XPA125B Mode"
   state_topic: "xpa125b/mode"
 - platform: mqtt
+  name: "XPA125B Rig Mode"
+  state_topic: "xpa125b/rigctlmode"
+- platform: mqtt
   name: "XPA125B TX Time"
   state_topic: "xpa125b/txtime"
   unit_of_measurement: "s"
