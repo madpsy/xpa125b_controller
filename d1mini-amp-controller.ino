@@ -5,7 +5,7 @@ const char* ssid = "";
 const char* password = "";
 
 // MQTT config
-bool mqtt_enabled = false
+bool mqtt_enabled = false;
 const char* mqttserver = "";
 const char* mqttuser = "";
 const char* mqttpass = "";
@@ -531,7 +531,7 @@ void handleRoot() {
   message += tx_limit;
   message += " seconds then TX will be blocked for ";
   message += tx_block_time;
-  message += " seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.</br></br>";
+  message += " seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT).</br></br>";
   message += "</body></html>";
   server.send(200, "text/html; charset=UTF-8", message);
 }
@@ -1165,10 +1165,13 @@ void loop(void) {
   int second = (difference / 1000);
   if (second != tx_previous_seconds) {
     tx_seconds++;
+    int tx_seconds_true = (tx_seconds - 1);
     char charSeconds[4];
-    String strSeconds = String(tx_seconds);
+    String strSeconds = String(tx_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
     pubsubClient.publish("xpa125b/txtime", charSeconds, false);
+    Serial.print("txtime ");
+    Serial.println(charSeconds);
     tx_previous_seconds=second;
   }
  } else {
@@ -1197,12 +1200,16 @@ void loop(void) {
     tx_block_timer--;
     tx_block_seconds = tx_block_timer;
     tx_block_previous_seconds=second;
+    int tx_block_seconds_true = (tx_block_seconds + 1);
     char charSeconds[4];
-    String strSeconds = String(tx_block_seconds);
+    String strSeconds = String(tx_block_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
     pubsubClient.publish("xpa125b/txblocktimer", charSeconds, false);
+    Serial.print("txblocktimer ");
+    Serial.println(charSeconds);
     if ( tx_block_timer == 0 ) {
     Serial.println("txblocktimer end");
+    pubsubClient.publish("xpa125b/txblocktimer", "0", false);
     } 
    }
  } else {
