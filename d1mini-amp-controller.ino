@@ -5,7 +5,7 @@ const char* ssid = "";
 const char* password = "";
 
 // MQTT config
-bool mqtt_enabled = false;
+bool mqtt_enabled = false
 const char* mqttserver = "";
 const char* mqttuser = "";
 const char* mqttpass = "";
@@ -75,8 +75,8 @@ String frequency = "0";
 String previous_frequency = "0";
 String rigctl_address;
 String rigctl_port;
-String current_rigctl_mode = "none";
-String previous_rigctl_mode = "none";
+String current_rig_mode = "none";
+String previous_rig_mode = "none";
 IPAddress remote_ip;
 IPAddress rigctl_ipaddress;
 int rigctl_portnumber;
@@ -180,8 +180,8 @@ void getFrequency() {
   server.send(200, "text/html; charset=UTF-8", frequency);
 }
 
-void httpGetRigctlMode() {
-  server.send(200, "text/html; charset=UTF-8", current_rigctl_mode);
+void httpGetRigMode() {
+  server.send(200, "text/html; charset=UTF-8", current_rig_mode);
 }
 
 String getRigctlAddress() {
@@ -340,6 +340,23 @@ void httpSetRigctlFreq(String value) {
   setRigctlFreq(value);
 }
 
+void setRigMode(String rigmode) {
+    current_rig_mode = rigmode;
+    if (current_rig_mode != previous_rig_mode) {
+       char modeChar[10];
+       current_rig_mode.toCharArray(modeChar, 10);
+       pubsubClient.publish("xpa125b/rigmode", modeChar, true);
+       Serial.print("rigmode ");
+       Serial.println(current_rig_mode);
+       previous_rig_mode = rigmode;
+    }
+}
+
+void httpSetRigMode(String value) {
+  server.send(200, "text/html; charset=UTF-8", value);
+  setRigMode(value);
+}
+
 void setRigctlMode(String mode) {
      String cmd  = "M "; cmd += (mode);
      char cmdChar[10];
@@ -470,6 +487,7 @@ void handleRoot() {
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
+  message += "/setrigmode mode=[rigmode] (USB/FM etc)</br>";
   message += "/setmqtt mqtt=[enable|disable] (only available via http)</br>";
   message += "/setrigctl address=[rigctl IP address] port=[rigctl port] (http only)</br>";
   message += "/setrigctlfreq freq=[frequency in Hz] (rigctl only)</br>";
@@ -485,7 +503,7 @@ void handleRoot() {
   message += "<a href='/network'>/network</a> (show network details)</br>";
   message += "<a href='/mqtt'>/mqtt</a> (show if mqtt is enabled - only available via http)</br>";
   message += "<a href='/rigctl'>/rigctl</a> (show rigctl server and performs connection test - only available via http)</br>";
-  message += "<a href='/rigctlmode'>/rigctlmode</a> (show mode the rigctl radio is set to (FM, USB etc)</br>";
+  message += "<a href='/rigmode'>/rigmode</a> (show mode the radio is set to (FM, USB etc)</br>";
   message += "<a href='/status'>/status</a> (show status summary in HTML - only available via http)</br></br>";
   message += "MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the message is the values in [])</br></br>";
   message += "Examples: (Note: mDNS should be xpa125b.local)</br></br>";
@@ -528,7 +546,7 @@ void getStatus() {
   message += "&nbsp State: ";
   message += curState;
   message += "&nbsp Rig Mode: ";
-  message += current_rigctl_mode;
+  message += current_rig_mode;
   message += "&nbsp TX Time: ";
   message += tx_seconds;
   message += "&nbsp TX Blocker: ";
@@ -614,30 +632,40 @@ void setBand(String band) {
     
     int pwm_value;
 
-    if ( bandInt == 160 ) {
-      pwm_value = 5;
-    } else if ( bandInt == 80 ) {
-      pwm_value = 40;
-    } else if ( bandInt == 60 ) {
-      pwm_value = 70;
-    } else if ( bandInt == 40 ) {
-      pwm_value = 95;
-    } else if ( bandInt == 30 ) {
-      pwm_value = 120;
-    } else if ( bandInt == 20 ) {
-      pwm_value = 150;
-    } else if ( bandInt == 17 ) {
-      pwm_value = 180;
-    } else if ( bandInt == 15 ) {
-      pwm_value = 210;
-    } else if ( bandInt == 12 ) {
-      pwm_value = 230;
-    } else if ( bandInt == 11 ) {
-      pwm_value = 255;
-    } else if ( bandInt == 10 ) {
-      pwm_value = 255;
-    } else {
-      pwm_value = 0;
+    switch (bandInt) {
+      case 160:
+        pwm_value = 5;
+        break;
+      case 80:
+        pwm_value = 40;
+        break;
+      case 60:
+        pwm_value = 70;
+        break;
+      case 40:
+        pwm_value = 95;
+        break;
+      case 30:
+        pwm_value = 120;
+        break;
+      case 20:
+        pwm_value = 150;
+        break;
+      case 17:
+        pwm_value = 210;
+        break;
+      case 15:
+        pwm_value = 230;
+        break;
+      case 12:
+        pwm_value = 255;
+        break;
+      case 10:
+        pwm_value = 255;
+        break;
+      default:
+        pwm_value = 0;
+        break;
     }
 
     analogWrite(band_pin, pwm_value);
@@ -895,8 +923,8 @@ void setup(void) {
        httpGetRigctlServer();
   });
 
-  server.on("/rigctlmode", [] () {
-       httpGetRigctlMode();
+  server.on("/rigmode", [] () {
+       httpGetRigMode();
   });
 
   server.on("/setmode", []() {
@@ -941,6 +969,19 @@ void setup(void) {
        httpSetFreq(freq);
      } else {
         server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'freq' and a value");
+     }
+    } else {
+      server.send(403, "text/html; charset=UTF-8", "HTTP control disabled");
+    }
+  });
+
+  server.on("/setrigmode", []() {
+    if (mode == "http") {
+     if ((server.method() == HTTP_POST) && (server.argName(0) == "mode")) {
+       String rigmode = server.arg(0);
+       httpSetRigMode(rigmode);
+     } else {
+        server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'mode' and a value");
      }
     } else {
       server.send(403, "text/html; charset=UTF-8", "HTTP control disabled");
@@ -1036,6 +1077,8 @@ void loop(void) {
      setBand(value);
    } else if ((command == "setfreq") && (mode == "serial")) {
      setFreq(value);
+   } else if ((command == "setrigmode") && (mode == "serial")) {
+     setRigMode(value);
    } else if ((command == "setrigctlfreq") && (mode == "rigctl")) {
      setRigctlFreq(value);
    } else if ((command == "setrigctlmode") && (mode == "rigctl")) {
@@ -1104,6 +1147,8 @@ void loop(void) {
      setState(message);
    } else if ( topic == "setmode" ) {
      setMode(message);
+   } else if ((topic == "setrigmode") && (mode == "mqtt")) {
+     setRigMode(message);
    } else if ((topic == "setrigctlfreq") && (mode == "rigctl")) {
      setRigctlFreq(message);
    } else if ((topic == "setrigctlmode") && (mode == "rigctl")) {
@@ -1171,15 +1216,7 @@ void loop(void) {
   }
   String m_result=sendRigctlCommand("m");
   if (m_result != "error") {
-    current_rigctl_mode = m_result;
-    if (current_rigctl_mode != previous_rigctl_mode) {
-       char modeChar[10];
-       current_rigctl_mode.toCharArray(modeChar, 10);
-       pubsubClient.publish("xpa125b/rigctlmode", modeChar, true);
-       Serial.print("rigctlmode ");
-       Serial.println(current_rigctl_mode);
-       previous_rigctl_mode = m_result;
-    }
+    setRigMode(m_result);
   }
   String t_result=sendRigctlCommand("t");
   if (t_result == "1") {
