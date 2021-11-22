@@ -165,7 +165,7 @@ Now all frequency and PTT state changes will be passed to the controller and it 
   
 Note: The example scripts are very bare bones and intended to demonstrate the feature. One improvement would be to not open a new TCP connection to rigctld every time but instead keep it open and send commands over the same session.
 
-# Analogue Example
+# Analogue Mode
 
 Analogue is the most basic mode of operation. This simply reads the incoming band voltage from a Yaesu compatible radio and outputs the correct voltage to the amplifier. PTT is handled in the same way. As well as automatic band control the other advantage of using the controller like this is the TX Block Timer.
   
