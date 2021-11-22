@@ -1,4 +1,4 @@
-# XPA125B Amplifier Network Controller
+# XPA125B Amplifier Network & Serial Controller
 Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `analogue` or `serial` mode. This would enable you to use a Yaesu rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms which is perfectly adequate for almost all digital work as well as phone.
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
@@ -212,7 +212,6 @@ In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power 
   
 + Reduce the excessive use of `Strings` in the code
 + There is virtually no input validation. Therefore all input values are trusted. This can be a pro or a con.
-+ Reduce the number of `if` statements rather than `switch`/`case`
 + Add support for Icom CI-V via `analogue` mode (Icom radios are currently only supported via rigctl)
 + Provide schematics for the interface board to the XPA125B amplifier
 + Add instructions how to adapt for other amplifiers
