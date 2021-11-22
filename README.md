@@ -161,7 +161,7 @@ In a different terminal you can watch the serial output by running:
   
 `./amp_serial_messages.sh /dev/ttyUSB0`
   
-Now all frequency and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl directly over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where the unpredictability of WiFi is a concern.
+Now all frequency and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where the unpredictability of WiFi is a concern.
   
 # TX Block
   
