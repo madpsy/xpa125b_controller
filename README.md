@@ -147,6 +147,22 @@ Note: When using `setfreq` it automatically sets the correct band. Therefore, us
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled.
 
+# Serial Example
+
+As mentioned previously you can run the controller without any network connectivity at all. In fact you can still interface with rigctl without network access by using the serial interface.
+  
+Example scripts written in Bash showing how this may be achieved can be found in the `examples/serial` directory. In the configuration you may leave everything default (blank) and only change the default mode to serial (`mode = "serial"`). This isn't strictly neccessary as the script sets this when it starts just to be sure. Because we haven't configured the WiFi credentials there won't be any network access.
+
+Assuming rigctld is available on `localhost` port `51111` and the serial interface of the controller is available at `/dev/ttyUSB0` you would run:
+
+`./amp_serial_control.sh localhost 51111 /dev/ttyUSB0`
+
+In a different terminal you can watch the serial output by running:
+  
+`./amp_serial_messages.sh /dev/ttyUSB0`
+  
+Now all frequency and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl directly over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where the unpredictability of WiFi is a concern.
+  
 # TX Block
   
 If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
