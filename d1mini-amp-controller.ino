@@ -477,6 +477,7 @@ void handleRoot() {
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
+  message += "setrigmode mode=[rigmode] (USB/FM etc)</br>";
   message += "setmqtt [enable|disable]</br>";
   message += "setrigctl [address] [port]</br>";
   message += "setrigctlfreq freq=[frequency in Hz] (rigctl only)</br>";
