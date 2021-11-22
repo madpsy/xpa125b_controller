@@ -209,6 +209,7 @@ In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power 
 # To Do
   
 + Reduce the excessive use of `Strings` in the code
++ Refuce the number of `if` statements rather than `switch`/`case`
 + Add support for Icom CI-V via `analogue` mode (Icom radios are currently only supported via rigctl)
 + Provide schematics for the interface board to the XPA125B amplifier
 + Add instructions how to adapt for other amplifiers
