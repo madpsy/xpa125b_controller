@@ -52,9 +52,11 @@ int current_band = 0;
 int previous_band = 0;
 int tx_timer = 0;
 int tx_seconds = 0;
+int tx_seconds_true = 0;
 int tx_previous_seconds = 0;
 int tx_block_timer = 0;
 int tx_block_seconds = 0;
+int tx_block_seconds_true = 0;
 int tx_block_previous_seconds = 0;
 int yaesu_band_voltage = 0;
 unsigned long current_tx_millis = 0;
@@ -549,9 +551,9 @@ void getStatus() {
   message += "&nbsp Rig Mode: ";
   message += current_rig_mode;
   message += "&nbsp TX Time: ";
-  message += tx_seconds;
+  message += String(tx_seconds_true);
   message += "&nbsp TX Blocker: ";
-  message += tx_block_seconds;
+  message += String(tx_block_seconds_true);
   message += "&nbsp MQTT: ";
   String mqttvalue = (mqtt_enabled ? "enabled" : "disabled");
   message += mqttvalue;
@@ -581,12 +583,12 @@ void getNetwork() {
 }
 
 void getTxTime() {
-  String seconds = String(tx_seconds);
+  String seconds = String(tx_seconds_true);
   server.send(200, "text/plain; charset=UTF-8", seconds);
 }
 
 void getTxBlockTimer() {
-  String seconds = String(tx_block_seconds);
+  String seconds = String(tx_block_seconds_true);
   server.send(200, "text/plain; charset=UTF-8", seconds);
 }
 
@@ -1165,7 +1167,7 @@ void loop(void) {
   int second = (difference / 1000);
   if (second != tx_previous_seconds) {
     tx_seconds++;
-    int tx_seconds_true = (tx_seconds - 1);
+    tx_seconds_true = (tx_seconds - 1);
     char charSeconds[4];
     String strSeconds = String(tx_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
@@ -1176,6 +1178,7 @@ void loop(void) {
   }
  } else {
   tx_seconds=0;
+  tx_seconds_true=0;
   if ( tx_seconds != tx_previous_seconds ) {
     pubsubClient.publish("xpa125b/txtime", "0", false);
     tx_previous_seconds=0;
@@ -1200,7 +1203,7 @@ void loop(void) {
     tx_block_timer--;
     tx_block_seconds = tx_block_timer;
     tx_block_previous_seconds=second;
-    int tx_block_seconds_true = (tx_block_seconds + 1);
+    tx_block_seconds_true = (tx_block_seconds + 1);
     char charSeconds[4];
     String strSeconds = String(tx_block_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
@@ -1214,6 +1217,7 @@ void loop(void) {
    }
  } else {
    tx_block_seconds=0;
+   tx_block_seconds_true=0;
    previous_block_millis = current_block_millis; 
  }
 
