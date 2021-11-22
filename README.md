@@ -177,7 +177,7 @@ You can still enable WiFi and/or MQTT with this mode if desired. This allows you
   
 # TX Block
   
-If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT). Note that 'seconds' is only rough due to non-exact timing in the code.
+If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT).
 
 In every mode this tells the amp to switch to RX. In rigctl mode this also tells the radio itself to stop TX'ing.
   
