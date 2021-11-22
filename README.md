@@ -87,6 +87,7 @@ A simple web interface is available on port 80 which allows access to basic func
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
 + setfreq [frequency in Hz]
++ setrigmode mode=[rigmode] (USB/FM etc)
 + setmqtt [enable|disable]
 + setrigctl [address] [port]
 + setrigctlfreq freq=[frequency in Hz] (only available in rigctl mode)
@@ -101,6 +102,7 @@ Note: There are no commands to get current states over serial. The reason being 
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
++ /setrigmode mode=[rigmode] (USB/FM etc)
 + /setmqtt mqtt=[enable|disable] (only available via http)
 + /setrigctl address=[rigctl IP address] port=[rigctl port] (http only)
 + /setrigctlfreq freq=[frequency in Hz] (rigctl only)
@@ -120,7 +122,7 @@ Note: When you use `setfreq` the system will translate this into a band automati
 + /network (show network details)
 + /mqtt (show if mqtt is enabled - only available via http)
 + /rigctl (show rigctl server and performs connection test - only available via http)
-+ /rigctlmode (show mode the rigctl radio is set to (FM, USB etc)
++ /rigmode (show mode the rigctl radio is set to (FM, USB etc)
 + /status (show status summary in HTML - only available via http)
 
 MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the message is the values in [])
