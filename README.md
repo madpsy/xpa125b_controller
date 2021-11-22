@@ -106,6 +106,8 @@ Note: There are no commands to get current states over serial. The reason being 
 + /setrigctlfreq freq=[frequency in Hz] (rigctl only)
 + /setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)
 + /setrigctlptt ptt=[0|1] (rigctl only)
+  
+Note: When you use `setfreq` the system will translate this into a band automatically. The idea is it makes it a lot easier than having to do the translation yourself.
 
 # Valid HTTP GET paths:
 
