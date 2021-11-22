@@ -217,7 +217,7 @@ If you use Home Assistant (https://www.home-assistant.io/) you can add sensors v
   state_topic: "xpa125b/mode"
 - platform: mqtt
   name: "XPA125B Rig Mode"
-  state_topic: "xpa125b/rigctlmode"
+  state_topic: "xpa125b/rigmode"
 - platform: mqtt
   name: "XPA125B TX Time"
   state_topic: "xpa125b/txtime"
