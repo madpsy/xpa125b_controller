@@ -135,6 +135,8 @@ Note: mDNS should be xpa125b.local
 + `mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime`
 
 When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor analogue can be used. You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial
+  
+Note: When using `setfreq` it automatically sets the correct band. Therefore, use either `setfreq` or `setband` but not both.
 
 + In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable
 + In serial mode we only accept band/freq selection and rx/tx via serial
@@ -143,7 +145,7 @@ When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor analogue c
 + In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig itself in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate)
 + In none mode then no control is possible
 
-If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled
+If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled.
 
 # TX Block
   
