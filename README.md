@@ -149,7 +149,7 @@ If MQTT is disabled and the mode is changed to MQTT then it will be automaticall
 
 # Serial Example
 
-As mentioned previously you can run the controller without any network connectivity at all. In fact you can still interface with rigctl without network access by using the serial interface.
+As mentioned previously you can run the controller without any network connectivity at all. In fact you can still interface with rigctl without network access by using the serial interface. Simply plug the controller into a USB port on the system you wish to run the scripts on.
   
 Example scripts written in Bash showing how this may be achieved can be found in the `examples/serial` directory. In the configuration you may leave everything default (blank) and only change the default mode to serial (`mode = "serial"`). This isn't strictly neccessary as the script sets this when it starts just to be sure. Because we haven't configured the WiFi credentials there won't be any network access.
 
@@ -164,6 +164,14 @@ In a different terminal you can watch the serial output by running:
 Now all frequency and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where WiFi connectivity is unavailable or undesirable. You can still enable WiFi with serial mode if you want the control to remain via serial but still have access to the other APIs and optionally also publish events to MQTT.
   
 Note: The example scripts are very bare bones and intended to demonstrate the feature. One improvement would be to not open a new TCP connection to rigctld every time but instead keep it open and send commands over the same session.
+
+# Analogue Example
+
+Analogue is the most basic mode of operation. This simply reads the incoming band voltage from a Yaesu compatible radio and outputs the correct voltage to the amplifier. PTT is handled in the same way. As well as automatic band control the other advantage of using the controller like this is the TX Block Timer.
+  
+In this mode you don't need WiFi or serial. As the default mode is already set to `analogue` simply compile as is and the controller will work straight away. You could even power it from a USB battery pack.
+
+You can still enable WiFi and/or MQTT with this mode if desired. This allows you to have access to the other APIs and web interface aswel as push MQTT events but have control entirely handled locally.
   
 # TX Block
   
