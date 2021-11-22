@@ -161,7 +161,9 @@ In a different terminal you can watch the serial output by running:
   
 `./amp_serial_messages.sh /dev/ttyUSB0`
   
-Now all frequency and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where the unpredictability of WiFi is a concern.
+Now all frequency and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where WiFi connectivity is unavailable or undesirable. You can still enable WiFi with serial mode if you want the control to remain via serial but still have access to the other APIs and optionally also publish events to MQTT.
+  
+Note: The example scripts are very bare bones and intended to demonstrate the feature. One improvement would be to not open a new TCP connection to rigctld every time but instead keep it open and send commands over the same session.
   
 # TX Block
   
