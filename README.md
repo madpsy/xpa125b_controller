@@ -7,7 +7,7 @@ Supported APIs/protocols:
 
 + Analogue (Yaesu standard band voltages)
 + Icom (Bluetooth)
-+ Rigctl (Hamlib)
++ Rigctl (any Hamlib compatible rig)
 + Serial
 + Web Interface
 + REST
