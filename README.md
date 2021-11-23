@@ -19,7 +19,7 @@ Even if a particular API isn't the current active mode for control purposes it c
 This project has grown arms and legs and is now a powerful tool way beyond its initial intended use. The most useful feature is providing multiple APIs on top of rigctl to allow integration into almost any custom software.
 
 + Use any Yaesu radio with an XPA125B Amplifier without network
-+ Use any hamlib compatible radio with an XPA125B Amplifier
++ Use any hamlib compatible radio with an XPA125B Amplifier (such as an Icom IC-705)
 + Provide a Web/REST/MQTT/Serial API interface to rigctl
 + Allow automation via Node-RED to any hamlib compatible radio
 + Expand to support Icom and other manufactures if desired
