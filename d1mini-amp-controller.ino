@@ -15,7 +15,7 @@ const char* mqttpass = "";
 String mode = "analogue";
 
 // rigctl config
-bool rigctl_default_enable = true;
+bool rigctl_default_enable = false;
 String rigctl_default_address = "";
 String rigctl_default_port = "";
 int rigctl_timeout = 500;
