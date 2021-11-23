@@ -73,11 +73,9 @@ To solve the lack of band selection you can utilise `rigctld` running on a compu
 
   1. Plug the 705 into the computer via USB.
   
-  2. Run rigctl like this (assumes Windows):
-
-  `rigctld.exe -r COM3 -m 3085 -t 51111` 
+  2. Run rigctld in a terminal (assumes Windows): `rigctld.exe -r COM3 -m 3085 -t 51111` 
  
-   Ensure the COM port is correct and you using the latest version of Hamlib. The hamlib rig ID for the Icom 705 is `3085`.
+   Ensure the COM port is correct for your radio and you are using the latest version of Hamlib. The hamlib rig ID for the Icom 705 is `3085`.
   
   3. Configure the controller in `rigctl` mode with the IP address of the computer and port `51111`.
   
