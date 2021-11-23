@@ -7,11 +7,11 @@ Supported APIs/protocols:
 
 + Analogue (Yaesu standard band voltages)
 + Icom (Bluetooth)
++ Rigctl (Hamlib)
 + Serial
 + Web Interface
 + REST
 + MQTT
-+ Rigctld
 
 Even if a particular API isn't the current active mode for control purposes it can still be consumed for state. For example, providing MQTT is configured and enabled it will still publish events such as band/frequency and PTT changes. This allows the current state to be easily consumed by other MQTT compatible software. Similarly for REST, you can always `GET /state` to find out the current PTT state.
 
