@@ -65,6 +65,34 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
  
  If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873.
   
+# Icom IC-705
+
+A popular QRP radio is the Icom-705 and the XPA125B makes a good companion in situations where you need extra power. The problem is only PTT works using a cable from the radio to the amplifier - no automatic band selection. This solution requires no cabling between the radio and the amplifier - you just need the controller.
+
+To solve the lack of band selection you can utilise `rigctld` running on a laptop. Most stations have a laptop for logging etc so this feels an adiquate solution. You can use either the built in `rigctl` mode or run the controller over serial using the method in the `Serial Example` secion below.
+
+  1. Plug the 705 into the computer via USB.
+  
+  2. Run rigctl like this (assumes Windows):
+
+  `rigctld.exe -r COM3 -m 3085 -t 51111` 
+ 
+   Ensure the COM port is correct and you using the latest version of Hamlib. The hamlib rig ID for the Icom 705 is `3085`.
+  
+  3. Configure the controller in `rigctl` mode with the IP address of the laptop and port `51111`.
+  
+  If you want to use the controller without network access you can use the example serial scripts under Linux. Although Windows has the WSL you can't access the serial ports (annoying). Here is how you could do this under any version of Linux (including on a Raspbery Pi).
+  
+  1. Plug the 705 into the computer via USB.
+  2. Plug the controller into the computer via USB
+  3. Configure the controller with `mode = "serial"` (no other config needed)
+  4. Find the serial device for the radio (`ls /dev/serial/by-id`)
+  5. Find the serial device for the controller (`ls /dev/ttyUSB*`)
+  6. In a terminal: `rigctld -r <path to radio serial device> -m 3085 -t 51111`
+  7. In a terminal: `./amp_serial_control.sh localhost 51111 <path to controller serial device>`
+
+  That's it - you now have PTT and automatic band selection. For other software, such as WSJX-T, which needs control of the radio you can use `Hamlib` as the radio type and point it at rigctld using `localhost` port `51111`.
+  
 # MQTT
 
 As well as allowing control of the amplifier by publishing MQTT events the system is always updating current state to MQTT. You can use this feature to act as a bridge between Rigctl and MQTT even when no amplifier is involved. To do this:
