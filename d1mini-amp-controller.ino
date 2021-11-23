@@ -85,6 +85,8 @@ int rigctl_portnumber;
 
 String curState = "rx";
 String curBand = "0";
+String curMode = "none";
+String previousMode = "none";
 
 char* Topic;
 byte* buffer;
@@ -593,19 +595,24 @@ void getTxBlockTimer() {
 }
 
 void setMode(String value) {
-   if ((value == "rigctl") && (!testRigctlServer())) {
-    return;
-   }
-   mode = value;
-   frequency = "0";
-   char charMode[9];
-   mode.toCharArray(charMode, 9);
-   Serial.print("mode ");
-   Serial.println(mode);
-   pubsubClient.publish("xpa125b/mode", charMode, true);
-   if ((mode == "mqtt") && (mqtt_enabled == 0)) {
-     setMQTT("enable");
-   }
+   curMode = value;
+   if (curMode != previousMode) {
+    if ((value == "rigctl") && (!testRigctlServer())) {
+      return;
+    }
+    mode = value;
+    //frequency = "0";
+    //previous_frequency = "0";
+    char charMode[9];
+    mode.toCharArray(charMode, 9);
+    Serial.print("mode ");
+    Serial.println(mode);
+    pubsubClient.publish("xpa125b/mode", charMode, true);
+    if ((mode == "mqtt") && (mqtt_enabled == 0)) {
+      setMQTT("enable");
+    }
+    previousMode = value;
+  }
 }
 
 void setBand(String band) {
