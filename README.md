@@ -69,7 +69,7 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
 
 A popular QRP radio is the Icom-705 and the XPA125B makes a good companion in situations where you need extra power. The problem is only PTT works using a cable from the radio to the amplifier - no automatic band selection. This solution requires no cabling between the radio and the amplifier - you just need the controller.
 
-To solve the lack of band selection you can utilise `rigctld` running on a laptop. Most stations have a laptop for logging etc so this feels an adiquate solution. You can use either the built in `rigctl` mode or run the controller over serial using the method in the `Serial Example` secion below.
+To solve the lack of band selection you can utilise `rigctld` running on a computer. Most stations have a computer of some kind for logging etc so this feels an adiquate solution. You can use either the built in `rigctl` mode or run the controller over serial using the method in the `Serial Example` secion below.
 
   1. Plug the 705 into the computer via USB.
   
@@ -81,7 +81,7 @@ To solve the lack of band selection you can utilise `rigctld` running on a lapto
   
   3. Configure the controller in `rigctl` mode with the IP address of the laptop and port `51111`.
   
-  If you want to use the controller without network access you can use the example serial scripts under Linux. Although Windows has the WSL you can't access the serial ports (annoying). Here is how you could do this under any version of Linux (including on a Raspbery Pi).
+  If you want to use the controller without network access you can use the example serial scripts under Linux. Although Windows has the WSL you can't access the serial ports (annoying). Here is how you could do this under any version of Linux (a Raspbery Pi would be perfect).
   
   1. Plug the 705 into the computer via USB.
   2. Plug the controller into the computer via USB
