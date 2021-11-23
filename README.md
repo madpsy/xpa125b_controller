@@ -25,6 +25,16 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 + Allow automation via Node-RED to any hamlib compatible radio
 + Expand to support Icom and other manufactures if desired
 
+# Bill of Materials
+
+# Schematic
+
+To Do
+
+# Bluetooth module (HC-05)
+
+To Do
+
 # Configuration
 
 The top of the file contains config options which need set first:
