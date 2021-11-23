@@ -79,7 +79,7 @@ To solve the lack of band selection you can utilise `rigctld` running on a compu
  
    Ensure the COM port is correct and you using the latest version of Hamlib. The hamlib rig ID for the Icom 705 is `3085`.
   
-  3. Configure the controller in `rigctl` mode with the IP address of the laptop and port `51111`.
+  3. Configure the controller in `rigctl` mode with the IP address of the computer and port `51111`.
   
   If you want to use the controller without network access you can use the example serial scripts under Linux. Although Windows has the WSL you can't access the serial ports (annoying). Here is how you could do this under any version of Linux (a Raspbery Pi would be perfect).
   
