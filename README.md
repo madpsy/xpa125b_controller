@@ -6,6 +6,7 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 Supported APIs/protocols:
 
 + Analogue (Yaesu standard band voltages)
++ Icom (Bluetooth)
 + Serial
 + Web Interface
 + REST
@@ -67,17 +68,27 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
 # Icom IC-705
 
-A popular QRP radio is the Icom-705 and the XPA125B makes a good companion in situations where you need extra power. The problem is only PTT works using a cable from the radio to the amplifier - no automatic band selection. This solution requires no cabling between the radio and the amplifier - you just need the controller.
+A popular QRP radio is the Icom-705 and the XPA125B makes a good companion in situations where you need extra power. The problem is only PTT works using a cable from the radio to the amplifier - no automatic band selection. 
+
+## Solution 1
+
+The preferred method of interfacing the controller with an IC-705 is to use the Blueooth feature built into the radio. With this method the radio presents the CI-V interface over bluetooth which connects to the HC-04 adapter of the controller. We use this to request the frequency (and thus band) from the radio. This method requires no network connectivity of the controller if you don't want or need access to the other APIs.
+  
+  1. Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back).
+  2. Connect the controller (name 'XPA128B') in the Bluetooth menu. Security code: 1234.
+  3. Connect the control cable to the 3.5mm port on the IC-705 (this is used for PTT detection).
+  
+## Solution 2
+  
+This solution requires no cabling between the radio and the amplifier - you just need the controller and a computer. This works with any Hamlib supported radio including other Icoms and Kenwood, Yaesu etc.
 
 To solve the lack of band selection you can utilise `rigctld` running on a computer. Most stations have a computer of some kind for logging etc so this feels an adequate solution. You can use either the built in `rigctl` mode or run the controller over serial using the method in the `Serial Example` secion below.
 
   1. Plug the 705 into the computer via USB.
-  
-  2. Run rigctld in a terminal (assumes Windows): `rigctld.exe -r COM3 -m 3085 -t 51111` 
- 
-   Ensure the COM port is correct for your radio and you are using the latest version of Hamlib. The hamlib rig ID for the Icom 705 is `3085`.
-  
+  2. Run rigctld in a terminal (assumes Windows): `rigctld.exe -r COM3 -m 3085 -t 51111`.
   3. Configure the controller in `rigctl` mode with the IP address of the computer and port `51111`.
+  
+  Ensure the COM port is correct for your radio and you are using the latest version of Hamlib. The hamlib rig ID for the Icom 705 is `3085`.
   
   If you want to use the controller without network access you can use the example serial scripts under Linux. Although Windows has the Linux subsystem you can't access the serial ports (annoying). Here is how you could do this under any version of Linux (a Raspbery Pi would be perfect).
   
@@ -89,7 +100,7 @@ To solve the lack of band selection you can utilise `rigctld` running on a compu
   6. In a terminal: `rigctld -r <path to radio serial device> -m 3085 -t 51111`
   7. In a terminal: `./amp_serial_control.sh localhost 51111 <path to controller serial device>`
 
-  That's it - you now have PTT and automatic band selection. For other software, such as WSJX-T, which needs control of the radio you can use `Hamlib` as the radio type and point it at rigctld using `localhost` port `51111`.
+That's it - you now have PTT and automatic band selection. For other software, such as WSJX-T, which needs control of the radio you can use `Hamlib` as the radio type and point it at rigctld using `localhost` port `51111`.
   
 # MQTT
 
@@ -109,7 +120,7 @@ A simple web interface is available on port 80 which allows access to basic func
 # Valid serial commands (115200 baud):
 
 + serialonly [true|false] (disables analogue and wifi entirely)
-+ setmode [analogue|serial|http|mqtt|rigctl|none]
++ setmode [analogue|icom|serial|http|mqtt|rigctl|none]
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
 + setfreq [frequency in Hz]
@@ -124,7 +135,7 @@ Note: There are no commands to get current states over serial. The reason being 
 
 # Valid HTTP POST paths:
 
-+ /setmode mode=[analogue|serial|http|mqtt|rigctl|none]
++ /setmode mode=[analogue|icom|serial|http|mqtt|rigctl|none]
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
@@ -167,6 +178,7 @@ When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor analogue c
 Note: When using `setfreq` it automatically sets the correct band. Therefore, use either `setfreq` or `setband` but not both.
 
 + In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable
++ In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable
 + In serial mode we only accept band/freq selection and rx/tx via serial
 + In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
 + In http mode we only accept band/freq selection and rx/tx via http messages
@@ -268,6 +280,5 @@ In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power 
   
 + Reduce the excessive use of `Strings` in the code
 + There is virtually no input validation. Therefore all input values are trusted. This can be a pro or a con.
-+ Add support for Icom CI-V via `analogue` mode (Icom radios are currently only supported via rigctl)
 + Provide schematics for the interface board to the XPA125B amplifier
 + Add instructions how to adapt for other amplifiers
