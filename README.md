@@ -79,7 +79,7 @@ To solve the lack of band selection you can utilise `rigctld` running on a compu
   
   3. Configure the controller in `rigctl` mode with the IP address of the computer and port `51111`.
   
-  If you want to use the controller without network access you can use the example serial scripts under Linux. Although Windows has the WSL you can't access the serial ports (annoying). Here is how you could do this under any version of Linux (a Raspbery Pi would be perfect).
+  If you want to use the controller without network access you can use the example serial scripts under Linux. Although Windows has the Linux subsystem you can't access the serial ports (annoying). Here is how you could do this under any version of Linux (a Raspbery Pi would be perfect).
   
   1. Plug the 705 into the computer via USB.
   2. Plug the controller into the computer via USB
