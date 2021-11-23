@@ -39,6 +39,7 @@ To Do
 
 The top of the file contains config options which need set first:
 
++ `wifi_enabled` - change to true if you want WiFi
 + `ssid` - your WiFi SSID
 + `password` - your WiFi password
 
