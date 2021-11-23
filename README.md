@@ -77,6 +77,7 @@ The preferred method of interfacing the controller with an IC-705 is to use the 
   1. Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back).
   2. Connect the controller (name 'XPA128B') in the Bluetooth menu. Security code: 1234.
   3. Connect the control cable to the 3.5mm port on the IC-705 (this is used for PTT detection).
+  4. Configure the controller with `mode = "icom"` (no other config needed)
   
 ## Solution 2
   
