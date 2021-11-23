@@ -24,7 +24,7 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 + Use any Hamlib compatible radio with the amplifier (no WiFi required)
 + Provide a Web/REST/MQTT/Serial API interface to rigctl
 + Allow automation via Node-RED to any hamlib compatible radio
-+ Expand to support Icom and other manufactures if desired
++ Expand to support other amplifiers if desired
 
 # Bill of Materials
 
