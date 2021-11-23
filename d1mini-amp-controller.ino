@@ -1,6 +1,7 @@
 // *********** START CONFIG ***********
 
 // WiFi config
+bool wifi_enabled = false;
 const char* ssid = "";
 const char* password = "";
 
@@ -14,7 +15,7 @@ const char* mqttpass = "";
 String mode = "analogue";
 
 // rigctl config
-bool rigctl_default_enable = false;
+bool rigctl_default_enable = true;
 String rigctl_default_address = "";
 String rigctl_default_port = "";
 int rigctl_timeout = 500;
@@ -33,6 +34,7 @@ int tx_block_time = 60; // 60 = 1 minute
 #include <ESP8266mDNS.h>
 #include <PubSubClient.h>
 #include <Regexp.h>
+#include <SoftwareSerial.h>
 
 ESP8266WebServer server(80);
 
@@ -44,6 +46,8 @@ int ptt_pin = D1;
 int band_pin = D2;
 int tx_pin = D3;
 int yaesu_band_pin = A0;
+int hc05_rx_pin = D4;
+int hc05_tx_pin = D5;
 
 String serialValue;
 char serialEOL = '\n';
@@ -59,6 +63,13 @@ int tx_block_seconds = 0;
 int tx_block_seconds_true = 0;
 int tx_block_previous_seconds = 0;
 int yaesu_band_voltage = 0;
+char bt_buffer[32];
+char bt_com = 0;
+unsigned char bt_ptr = 0;
+unsigned long bt_kHz = 0;
+unsigned long bt_MHz = 0;
+unsigned long bt_Hz = 0;
+String bt_freq;
 unsigned long current_tx_millis = 0;
 unsigned long previous_tx_millis = 0;
 unsigned long current_block_millis = 0;
@@ -93,6 +104,8 @@ byte* buffer;
 String message;
 boolean Rflag=false;
 int r_len;
+
+SoftwareSerial BTserial(hc05_rx_pin, hc05_tx_pin);
 
 String getValue(String data, char separator, int index)
 {
@@ -239,7 +252,7 @@ void setRigctlPort(String port) {
 }
 
 bool testRigctlServer() {
-  if ((rigctl_address_set) && (rigctl_port_set)) {
+  if (((wifi_enabled == true) && (rigctl_address_set) && (rigctl_port_set))) {
    if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
     if ((sendRigctlCommand("t") == "0") || (sendRigctlCommand("t") == "1")) {
       Serial.print("connection to rigctl server succeeded ");
@@ -269,7 +282,7 @@ bool testRigctlServer() {
 }
 
 bool connectRigctl() {
-  if ((rigctl_address_set) && (rigctl_port_set)) {
+  if (((wifi_enabled == true) &&  (rigctl_address_set) && (rigctl_port_set))) {
     //Serial.println("connecting to rigctl");
     if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
       if (rigctl_debug) {
@@ -281,7 +294,7 @@ bool connectRigctl() {
       return false;
     }
   } else {
-    Serial.println("rigctl address and port not set");
+    Serial.println("wifi disabled or rigctl address and port not set");
     return false;
   }
 }
@@ -413,6 +426,7 @@ void handleRoot() {
   message += "<select name='mode'>";
   message += "<option value='rigctl'>Rigctl</option>";
   message += "<option value='analogue'>Analogue</option>";
+  message += "<option value='icom'>Icom</option>";
   message += "<option value='serial'>Serial</option>";
   message += "<option value='http'>HTTP</option>";
   message += "<option value='mqtt'>MQTT</option>";
@@ -477,7 +491,7 @@ void handleRoot() {
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
   message += "serialonly [true|false] (disables analogue and wifi entirely)</br>";
-  message += "setmode [analogue|serial|http|mqtt|rigctl|none]</br>";
+  message += "setmode [analogue|icom|serial|http|mqtt|rigctl|none]</br>";
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
@@ -488,7 +502,7 @@ void handleRoot() {
   message += "setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
   message += "setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
-  message += "/setmode mode=[analogue|serial|http|mqtt|rigctl|none]</br>";
+  message += "/setmode mode=[analogue|icom|serial|http|mqtt|rigctl|none]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
@@ -523,6 +537,7 @@ void handleRoot() {
   message += "When serialonly is enabled neither http/mqtt (wifi is disabled) nor analogue can be used</br>";
   message += "You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial</br>";
   message += "In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable (default mode on boot)</br>";
+  message += "In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable</br>";
   message += "In serial mode we only accept band/freq selection and rx/tx via serial</br>";
   message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages</br>";
   message += "In http mode we only accept band/freq selection and rx/tx via http messages</br>";
@@ -845,13 +860,13 @@ void wifi(String state) {
       Serial.print("MAC address: ");
       Serial.println(WiFi.macAddress());
     } else {
-      Serial.println("\nWiFi failed to connect");
+      Serial.println("\nWiFi failed to connect");;
     }
     if (MDNS.begin("xpa125b")) {
       Serial.println("MDNS responder started as xpa125b[.local]");
     }
     mqttConnect();
-  } else if (state == "disable") {
+  } else if ((state == "disable") && (WiFi.status() != WL_DISCONNECTED)) {
     WiFi.mode(WIFI_OFF);
     Serial.println("WiFi disabled");
   }
@@ -859,10 +874,14 @@ void wifi(String state) {
 
 void setup(void) {
   Serial.begin(115200);
-  //Serial.setDebugOutput(true);
-  Serial.println("");
+  delay(500); // computer serial port takes time to be available after reset
+  Serial.println("XPA125B controller started");
 
-  wifi("enable");
+  BTserial.begin(9600);
+
+  if (wifi_enabled == true) {
+    wifi("enable");
+  }
   
   // set to 160m and 0Hz by default
   setBand("160");
@@ -1071,6 +1090,13 @@ void setup(void) {
 }
 
 void loop(void) {
+
+  if (wifi_enabled == true) {
+    wifi("enable");
+  } else {
+    wifi("disable");
+  }
+   
   server.handleClient();
   MDNS.update();
 
@@ -1107,27 +1133,29 @@ void loop(void) {
      if (value == "true") {
       serialonly = true;
       setMode("serial");
-      wifi("disable");
+      wifi_enabled = false;
      } else if (value == "false") {
       serialonly = false;
-      wifi("enable");
+      wifi_enabled = true;
      }
    } 
  }  
 
- rx_state = digitalRead(tx_pin);
- if (((rx_state == LOW) && (mode == "analogue") && (serialonly == false))) {
-    current_analogue_rx = true;
-    if (current_analogue_rx != previous_analogue_rx) {
-      setState("tx");
-      previous_analogue_rx = true;
-    }
- } else if (((rx_state == HIGH) && (mode == "analogue") && (serialonly == false))) {
-    current_analogue_rx = false;
-    if (current_analogue_rx != previous_analogue_rx) {
-      setState("rx");
-      previous_analogue_rx = false;
-    }
+ if ((mode == "analogue") || (mode == "icom")) {
+  rx_state = digitalRead(tx_pin);
+  if ((rx_state == LOW) && (serialonly == false)) {
+      current_analogue_rx = true;
+      if (current_analogue_rx != previous_analogue_rx) {
+        setState("tx");
+        previous_analogue_rx = true;
+      }
+  } else if ((rx_state == HIGH) && (serialonly == false)) {
+     current_analogue_rx = false;
+     if (current_analogue_rx != previous_analogue_rx) {
+       setState("rx");
+       previous_analogue_rx = false;
+     }
+   }
  }
 
  yaesu_band_voltage = analogRead(yaesu_band_pin);
@@ -1228,7 +1256,7 @@ void loop(void) {
    previous_block_millis = current_block_millis; 
  }
 
- if (mode == "rigctl") {
+ if ((mode == "rigctl") && (wifi_enabled == true)) {
   String f_result=sendRigctlCommand("f");
   if (f_result != "error") {
     setFreq(f_result);
@@ -1252,6 +1280,47 @@ void loop(void) {
     }
   }
  }
+
+ // Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back) and connect the controller ('XPA128B') in the Bluetooth menu. Security code: 1234.
+ // The BT name of the HC-05 is set with 'AT+NAME=XPA128B' and password with 'AT+PSWD="12345"'
+ // There is a button near the EN pin of HC-05 module. Press that button, apply power and then release. You are now in AT command mode.
+ // Continuous blinking of LED indicates it is in data mode and delayed blinking (2 seconds) indicates the module is in AT command mode.
+ if (mode == "icom") {
+  if (BTserial.available())
+  {  
+      int bt_c = BTserial.read() & 0x00ff;
+      //Serial.write(bt_c);
+      //sprintf(ser_buffer, "%u\n", bt_c);
+      //Serial.write(ser_buffer);
  
- delay(10); // so we dont go full throttle
+      if (bt_c == 0xfe){
+        bt_com = 1;
+        bt_ptr = 0;
+      }
+      else if(bt_c == 0xfd){
+        bt_com = 2;
+      }
+      else if (bt_com == 1){
+        bt_buffer[bt_ptr] = bt_c;
+        if (++bt_ptr > 31) bt_ptr = 31;
+      }
+  }
+  if (bt_com == 2){
+    bt_com = 0;
+    bt_ptr = 0;
+    if (bt_buffer[2] == 0){
+      bt_kHz = (bt_buffer[4] & 0xf0) >> 4;
+      bt_kHz += 10 * (bt_buffer[5] & 0x0f);
+      bt_kHz += 100 * ((bt_buffer[5] & 0xf0) >> 4);
+      bt_MHz = bt_buffer[6] & 0x0f;
+      bt_MHz += 10 * ((bt_buffer[6] & 0xf0) >> 4);
+      bt_MHz += 100 * (bt_buffer[7] & 0x0f);
+      bt_Hz = bt_MHz * 1000 + bt_kHz;
+      bt_Hz = bt_Hz * 1000;
+      bt_freq = String(bt_Hz);
+      setFreq(bt_freq);
+    }
+  }
+ }
+ delay(10); // This delay is needed for several weird reasons. WiFi becomes unstable without it, ADC readings and digial pin readings go funny. Don't touch this.
 }
