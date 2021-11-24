@@ -6,7 +6,7 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 Supported APIs/protocols:
 
 + Yaesu (Yaesu standard band voltages)
-+ Icom (Bluetooth)
++ Icom (via Bluetooth, such as the IC-705)
 + Rigctl (any Hamlib compatible rig)
 + Serial
 + Web Interface
