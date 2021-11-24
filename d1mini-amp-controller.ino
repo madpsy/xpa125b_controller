@@ -362,7 +362,7 @@ void setRigMode(String rigmode) {
     if (current_rig_mode != previous_rig_mode) {
        char modeChar[10];
        current_rig_mode.toCharArray(modeChar, 10);
-       pubsubClient.publish("xpa125b/rigmode", modeChar, true);
+       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/rigmode", modeChar, true);
        Serial.print("rigmode ");
        Serial.println(current_rig_mode);
        previous_rig_mode = rigmode;
@@ -622,7 +622,7 @@ void setMode(String value) {
     mode.toCharArray(charMode, 9);
     Serial.print("mode ");
     Serial.println(mode);
-    pubsubClient.publish("xpa125b/mode", charMode, true);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/mode", charMode, true);
     if ((mode == "mqtt") && (mqtt_enabled == 0)) {
       setMQTT("enable");
     }
@@ -698,7 +698,7 @@ void setBand(String band) {
     if ( current_band != previous_band ) {
       Serial.print("band ");
       Serial.println(bandChar);
-      pubsubClient.publish("xpa125b/band", bandChar, true);
+      if (pubsubClient.connected()) pubsubClient.publish("xpa125b/band", bandChar, true);
     }
     previous_band = bandInt; 
 }
@@ -743,8 +743,11 @@ void setFreq(String freq) {
  if (((freq != previous_frequency) && (freq != "error" ) && (freq != "0")))  {  
    frequency = freq;
    char charFreq[10];
+   // create an int var for if/when I change this logic to use comparison between two values rather than regex, such as:
+   // if ((freqInt >= 14000000) && (freqInt <= 14999999))
+   int freqInt = frequency.toInt();
    freq.toCharArray(charFreq, 10);
-   pubsubClient.publish("xpa125b/frequency", charFreq, false);
+   if (pubsubClient.connected()) pubsubClient.publish("xpa125b/frequency", charFreq, false);
    Serial.print("frequency ");
    Serial.println(frequency);
    if (regexMatch(charFreq, "^1......$")) {
@@ -786,7 +789,7 @@ void setState(String state) {
     curState = "rx";
     if (current_state != previous_state) {
       Serial.println("state rx");
-      pubsubClient.publish("xpa125b/state", "rx");
+      if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "rx");
     }
     previous_state = 0;
     tx_timer = 0;
@@ -797,7 +800,7 @@ void setState(String state) {
     curState = "tx";
     if (current_state != previous_state) {
       Serial.println("state tx");
-      pubsubClient.publish("xpa125b/state", "tx");
+      if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
     }
     previous_state = 1;
   }
@@ -838,6 +841,7 @@ void httpSetMQTT(String value) {
 void wifi(String state) {
   if ((state == "enable") && (WiFi.status() != WL_CONNECTED)) {
     WiFi.mode(WIFI_STA);
+    WiFi.hostname("xpa125b");
     WiFi.begin(ssid, password);
     int count = 0;
     while ((WiFi.status() != WL_CONNECTED) && (count < 20)) {
@@ -859,13 +863,13 @@ void wifi(String state) {
       Serial.println(WiFi.gatewayIP());
       Serial.print("MAC address: ");
       Serial.println(WiFi.macAddress());
+      if (MDNS.begin("xpa125b")) {
+        Serial.println("MDNS responder started as xpa125b[.local]");
+      }
+      mqttConnect();
     } else {
       Serial.println("\nWiFi failed to connect");;
     }
-    if (MDNS.begin("xpa125b")) {
-      Serial.println("MDNS responder started as xpa125b[.local]");
-    }
-    mqttConnect();
   } else if ((state == "disable") && (WiFi.status() != WL_DISCONNECTED)) {
     WiFi.mode(WIFI_OFF);
     Serial.println("WiFi disabled");
@@ -895,14 +899,14 @@ void setup(void) {
   analogWriteFreq(30000);
 
   if (mqtt_enabled == true) {
-    pubsubClient.subscribe("xpa125b/#");
-    pubsubClient.publish("xpa125b/state", "rx", true);
-    pubsubClient.publish("xpa125b/band", "160", true);
-    pubsubClient.publish("xpa125b/txtime", "0", false);
-    pubsubClient.publish("xpa125b/txblocktimer", "0", false);
+    if (pubsubClient.connected()) pubsubClient.subscribe("xpa125b/#");
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "rx", true);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/band", "160", true);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txtime", "0", false);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txblocktimer", "0", false);
     char modeChar[10];
     mode.toCharArray(modeChar, 10);
-    pubsubClient.publish("xpa125b/mode", modeChar, true);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/mode", modeChar, true);
   }
 
   if (rigctl_default_enable) {
@@ -1206,7 +1210,7 @@ void loop(void) {
     char charSeconds[4];
     String strSeconds = String(tx_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
-    pubsubClient.publish("xpa125b/txtime", charSeconds, false);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txtime", charSeconds, false);
     Serial.print("txtime ");
     Serial.println(charSeconds);
     tx_previous_seconds=second;
@@ -1215,7 +1219,7 @@ void loop(void) {
   tx_seconds=0;
   tx_seconds_true=0;
   if ( tx_seconds != tx_previous_seconds ) {
-    pubsubClient.publish("xpa125b/txtime", "0", false);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txtime", "0", false);
     tx_previous_seconds=0;
   }
   previous_tx_millis = current_tx_millis;
@@ -1242,12 +1246,12 @@ void loop(void) {
     char charSeconds[4];
     String strSeconds = String(tx_block_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
-    pubsubClient.publish("xpa125b/txblocktimer", charSeconds, false);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txblocktimer", charSeconds, false);
     Serial.print("txblocktimer ");
     Serial.println(charSeconds);
     if ( tx_block_timer == 0 ) {
     Serial.println("txblocktimer end");
-    pubsubClient.publish("xpa125b/txblocktimer", "0", false);
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txblocktimer", "0", false);
     } 
    }
  } else {
