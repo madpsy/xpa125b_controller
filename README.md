@@ -1,11 +1,11 @@
 # XPA125B Amplifier Network & Serial Controller
-Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu` or `serial` mode. This would enable you to use a Yaesu rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and yaesu modes the latency is even less.
+Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, 'icom' and `serial` mode. This would enable you to use a Yaesu or Icom rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and yaesu modes the latency is even less.
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
 
 Supported APIs/protocols:
 
-+ yaesu (Yaesu standard band voltages)
++ Yaesu (Yaesu standard band voltages)
 + Icom (Bluetooth)
 + Rigctl (any Hamlib compatible rig)
 + Serial
@@ -27,6 +27,8 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 + Expand to support other amplifiers if desired (e.g. Hardrock-50)
 
 # Bill of Materials
+
+To Do
 
 # Schematic
 
