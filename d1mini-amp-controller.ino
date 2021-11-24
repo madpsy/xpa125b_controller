@@ -12,7 +12,7 @@ const char* mqttuser = "";
 const char* mqttpass = "";
 
 // default mode
-String mode = "analogue";
+String mode = "yaesu";
 
 // rigctl config
 bool rigctl_default_enable = false;
@@ -78,8 +78,8 @@ bool rx_state = true;
 bool previous_state = 0;
 bool current_state = 0;
 bool serialonly = 0;
-bool current_analogue_rx = 0;
-bool previous_analogue_rx = 0;
+bool current_yaesu_rx = 0;
+bool previous_yaesu_rx = 0;
 bool current_rigctl_rx = 0;
 bool previous_rigctl_rx = 0;
 bool rigctl_address_set = false;
@@ -425,7 +425,7 @@ void handleRoot() {
   message += "<form action='/setmode' method='post' target='response'>";
   message += "<select name='mode'>";
   message += "<option value='rigctl'>Rigctl</option>";
-  message += "<option value='analogue'>Analogue</option>";
+  message += "<option value='yaesu'>Yaesu</option>";
   message += "<option value='icom'>Icom</option>";
   message += "<option value='serial'>Serial</option>";
   message += "<option value='http'>HTTP</option>";
@@ -490,8 +490,8 @@ void handleRoot() {
   message += "<iframe src='/status' scrolling='no' frameBorder='0' width=700 height=25></iframe>";
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
-  message += "serialonly [true|false] (disables analogue and wifi entirely)</br>";
-  message += "setmode [analogue|icom|serial|http|mqtt|rigctl|none]</br>";
+  message += "serialonly [true|false] (disables yaesu and wifi entirely)</br>";
+  message += "setmode [yaesu|icom|serial|http|mqtt|rigctl|none]</br>";
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
@@ -502,7 +502,7 @@ void handleRoot() {
   message += "setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
   message += "setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
-  message += "/setmode mode=[analogue|icom|serial|http|mqtt|rigctl|none]</br>";
+  message += "/setmode mode=[yaesu|icom|serial|http|mqtt|rigctl|none]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
@@ -534,9 +534,9 @@ void handleRoot() {
   message += "/txtime</br>";  
   message += "mosquitto_pub -h hostname -u username -P password -t xpa125b/setmode -m http</br>";
   message += "mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime</br></br>";
-  message += "When serialonly is enabled neither http/mqtt (wifi is disabled) nor analogue can be used</br>";
+  message += "When serialonly is enabled neither http/mqtt (wifi is disabled) nor yaesu can be used</br>";
   message += "You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial</br>";
-  message += "In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable (default mode on boot)</br>";
+  message += "In yaesu mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable (default mode on boot)</br>";
   message += "In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable</br>";
   message += "In serial mode we only accept band/freq selection and rx/tx via serial</br>";
   message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages</br>";
@@ -550,7 +550,7 @@ void handleRoot() {
   message += tx_limit;
   message += " seconds then TX will be blocked for ";
   message += tx_block_time;
-  message += " seconds. After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT).</br></br>";
+  message += " seconds. After the block releases you must send another TX event to start again - this includes yaesu (i.e. release PTT).</br></br>";
   message += "</body></html>";
   server.send(200, "text/html; charset=UTF-8", message);
 }
@@ -1145,25 +1145,27 @@ void loop(void) {
    } 
  }  
 
- if ((mode == "analogue") || (mode == "icom")) {
+ if ((mode == "yaesu") || (mode == "icom")) {
+  delay(10); // digital pin needs time to settle between reads
   rx_state = digitalRead(tx_pin);
   if ((rx_state == LOW) && (serialonly == false)) {
-      current_analogue_rx = true;
-      if (current_analogue_rx != previous_analogue_rx) {
+      current_yaesu_rx = true;
+      if (current_yaesu_rx != previous_yaesu_rx) {
         setState("tx");
-        previous_analogue_rx = true;
+        previous_yaesu_rx = true;
       }
   } else if ((rx_state == HIGH) && (serialonly == false)) {
-     current_analogue_rx = false;
-     if (current_analogue_rx != previous_analogue_rx) {
+     current_yaesu_rx = false;
+     if (current_yaesu_rx != previous_yaesu_rx) {
        setState("rx");
-       previous_analogue_rx = false;
+       previous_yaesu_rx = false;
      }
    }
  }
 
- yaesu_band_voltage = analogRead(yaesu_band_pin);
- if ((mode == "analogue") && (serialonly == false)) {
+ if ((mode == "yaesu") && (serialonly == false)) {
+    delay(10); // ADC needs time to settle between reads
+    yaesu_band_voltage = analogRead(yaesu_band_pin);
     setBandVoltage(yaesu_band_voltage);
  }
 
@@ -1326,5 +1328,4 @@ void loop(void) {
     }
   }
  }
- delay(10); // This delay is needed for several weird reasons. WiFi becomes unstable without it, ADC readings and digial pin readings go funny. Don't touch this.
 }
