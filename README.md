@@ -299,5 +299,6 @@ In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power 
 + Add instructions how to adapt for other amplifiers
 
 # Thanks
-  
+
+Thank you to Mike from Hamlib for promptly fixing a connection delay issue with Windows (https://github.com/Hamlib/Hamlib/issues/873)
 Quick shout out to https://www.hobbypcb.com/ for some of the CI-V logic.
