@@ -1,11 +1,11 @@
 # XPA125B Amplifier Network & Serial Controller
-Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `analogue` or `serial` mode. This would enable you to use a Yaesu rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and analogue modes the latency is even less.
+Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu` or `serial` mode. This would enable you to use a Yaesu rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and yaesu modes the latency is even less.
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
 
 Supported APIs/protocols:
 
-+ Analogue (Yaesu standard band voltages)
++ yaesu (Yaesu standard band voltages)
 + Icom (Bluetooth)
 + Rigctl (any Hamlib compatible rig)
 + Serial
@@ -132,8 +132,8 @@ A simple web interface is available on port 80 which allows access to basic func
   
 # Valid serial commands (115200 baud):
 
-+ serialonly [true|false] (disables analogue and wifi entirely)
-+ setmode [analogue|icom|serial|http|mqtt|rigctl|none]
++ serialonly [true|false] (disables every other mode and wifi entirely)
++ setmode [yaesu|icom|serial|http|mqtt|rigctl|none]
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
 + setfreq [frequency in Hz]
@@ -148,7 +148,7 @@ Note: There are no commands to get current states over serial. The reason being 
 
 # Valid HTTP POST paths:
 
-+ /setmode mode=[analogue|icom|serial|http|mqtt|rigctl|none]
++ /setmode mode=[yaesu|icom|serial|http|mqtt|rigctl|none]
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
@@ -186,11 +186,11 @@ Note: mDNS should be xpa125b.local
 + `mosquitto_pub -h hostname -u username -P password -t xpa125b/setmode -m http`
 + `mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime`
 
-When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor analogue can be used. You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial
+When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor yaesu/icom can be used. You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial
   
 Note: When using `setfreq` it automatically sets the correct band. Therefore, use either `setfreq` or `setband` but not both.
 
-+ In analogue mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable
++ In yaesu mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable
 + In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable
 + In serial mode we only accept band/freq selection and rx/tx via serial
 + In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
@@ -218,17 +218,17 @@ Now all frequency, mode and PTT state changes will be passed to the controller a
   
 Note: The example scripts are very bare bones and intended to demonstrate the feature. One improvement would be to not open a new TCP connection to rigctld every time but instead keep it open and send commands over the same session.
 
-# Analogue Mode
+# Yaesu Mode
 
-Analogue is the most basic mode of operation. This simply reads the incoming band voltage from a Yaesu compatible radio and outputs the correct voltage to the amplifier. PTT is handled in the same way. As well as automatic band control the other advantage of using the controller like this is the TX Block Timer.
+Yaesu is the most basic mode of operation. This simply reads the incoming band voltage from a Yaesu compatible radio and outputs the correct voltage to the amplifier. PTT is handled in the same way. As well as automatic band control the other advantage of using the controller like this is the TX Block Timer.
   
-In this mode you don't need WiFi or serial. As the default mode is already set to `analogue` simply compile as is and the controller will work straight away. You could even power it from a USB battery pack.
+In this mode you don't need WiFi or serial. As the default mode is already set to `yaesu` simply compile as is and the controller will work straight away. You could even power it from a USB battery pack.
 
 You can still enable WiFi and/or MQTT with this mode if desired. This allows you to have access to the other APIs and web interface aswel as push MQTT events but have control entirely handled locally.
   
 # TX Block
   
-If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes analogue (i.e. release PTT).
+If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes Yaesu & Icom modes (i.e. release PTT).
 
 In every mode this tells the amp to switch to RX. In rigctl mode this also tells the radio itself to stop TX'ing.
   
