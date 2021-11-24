@@ -297,3 +297,7 @@ In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power 
 + There is virtually no input validation. Therefore all input values are trusted. This can be a pro or a con.
 + Provide schematics for the interface board to the XPA125B amplifier
 + Add instructions how to adapt for other amplifiers
+
+# Thanks
+  
+Quick shout out to https://www.hobbypcb.com/ for some of the CI-V logic.
