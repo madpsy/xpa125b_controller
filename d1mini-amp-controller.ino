@@ -1,7 +1,7 @@
 // *********** START CONFIG ***********
 
 // WiFi config
-bool wifi_enabled = false;
+bool wifi_enabled = false
 const char* ssid = "";
 const char* password = "";
 
@@ -13,6 +13,16 @@ const char* mqttpass = "";
 
 // default mode
 String mode = "yaesu";
+
+// enable bluetooth (required for Icom)
+bool hl_05_enabled = false;
+
+// enable MAX3232 (required for Elecraft radio or Hardrock-50 amplifier)
+bool max3232_enabled = false;
+long int max3232_baud = 38400;
+
+// amplifier type
+const char* amplifier = "xpa125b";
 
 // rigctl config
 bool rigctl_default_enable = false;
@@ -46,8 +56,19 @@ int ptt_pin = D1;
 int band_pin = D2;
 int tx_pin = D3;
 int yaesu_band_pin = A0;
+// serial adapters - use either an hc-05 for the IC-705 or a MAX3232 for Elecraft radio/Hardrock-50 amp - both share the same pins
+// bluetooth - tx pin overlaps with SunSDR/Yaesu so you can either use bluetooth (for Icom-705) or SunSDR/Yaesu
 int hc05_rx_pin = D4;
 int hc05_tx_pin = D5;
+// MAX3232 - tx pin overlaps with SunSDR/Yaesu so you can either use MAX3232 (for Elecraft radio / Hardrock-50 amp) or SunSDR/Yaesu
+int max3232_rx_pin = D4;
+int max3232_tx_pin = D5;
+// SunSDR EXT CTRL and Yaesu Band Data - requires level converter 5VDC to 3V3
+// X8 on the SunSDR and 'TX GND' on Yaesu (LINEAR mode) is PTT (no need for level converter)
+int band_data_1 = D5;
+int band_data_2 = D6;
+int band_data_3 = D7;
+int band_data_4 = D8;
 
 String serialValue;
 char serialEOL = '\n';
@@ -65,6 +86,8 @@ int tx_block_previous_seconds = 0;
 int yaesu_band_voltage = 0;
 char bt_buffer[32];
 char bt_com = 0;
+unsigned char hr_band = 11;
+unsigned char prev_hr_band = 11;
 unsigned char bt_ptr = 0;
 unsigned long bt_kHz = 0;
 unsigned long bt_MHz = 0;
@@ -104,8 +127,10 @@ byte* buffer;
 String message;
 boolean Rflag=false;
 int r_len;
+char ser_buffer[32];
 
 SoftwareSerial BTserial(hc05_rx_pin, hc05_tx_pin);
+SoftwareSerial MAX3232(max3232_rx_pin, max3232_tx_pin);
 
 String getValue(String data, char separator, int index)
 {
@@ -179,6 +204,59 @@ void handleNotFound() {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
   server.send(404, "text/html; charset=UTF-8", message);
+}
+
+bool setupBandData() {
+  if (hl_05_enabled == false) {
+    pinMode(band_data_1,INPUT_PULLUP);
+    pinMode(band_data_1,INPUT_PULLUP);
+    pinMode(band_data_1,INPUT_PULLUP);
+    pinMode(band_data_1,INPUT_PULLUP);
+    Serial.println("Band data pins configured");
+    return true;
+  } else {
+    Serial.println("Cannot setup band data when bluetooth is snabled as the TX pin overlaps");
+    return false;
+  }
+}
+
+bool setupMAX3232() {
+  if (hl_05_enabled == false) {
+    if (max3232_enabled == true) {
+      MAX3232.begin(max3232_baud);
+      Serial.print("MAX3232 configured at baudrate ");
+      Serial.println(max3232_baud);
+      return true;
+    } else {
+      Serial.println("You must set max3232_enabled to true");
+      return false;
+    }
+  } else {
+    Serial.println("Cannot setup MAX3232 when bluetooth is enabled as the TX pin overlaps");
+    return false;
+  }
+}
+
+bool setupAmplifier(String value) {
+  if (value == "xpa125b") {
+    amplifier = "xpa125b";
+    Serial.println("Amplifier set to xpa125b");
+    return true;
+  } else if (value == "minipa50") {
+    amplifier = "xpa125b";
+    Serial.println("Amplifier set to xpa125b");
+    return true;
+  } else if (value == "hardrock50") {
+    if (setupMAX3232) {
+      amplifier = "hardrock50";
+      Serial.println("Amplifier set to hardrock50");
+      return true;
+    } else {
+      amplifier = "none";
+      Serial.print("Failed to set amplifier set to hardrock50");
+      return false;
+    }
+  }
 }
 
 void getMode() {
@@ -360,8 +438,8 @@ void httpSetRigctlFreq(String value) {
 void setRigMode(String rigmode) {
     current_rig_mode = rigmode;
     if (current_rig_mode != previous_rig_mode) {
-       char modeChar[10];
-       current_rig_mode.toCharArray(modeChar, 10);
+       char modeChar[20];
+       current_rig_mode.toCharArray(modeChar, 20);
        if (pubsubClient.connected()) pubsubClient.publish("xpa125b/rigmode", modeChar, true);
        Serial.print("rigmode ");
        Serial.println(current_rig_mode);
@@ -426,7 +504,10 @@ void handleRoot() {
   message += "<select name='mode'>";
   message += "<option value='rigctl'>Rigctl</option>";
   message += "<option value='yaesu'>Yaesu</option>";
+  message += "<option value='yaesu817'>Yaesu 817/818</option>";
   message += "<option value='icom'>Icom</option>";
+  message += "<option value='sunsdr'>SunSDR</option>";
+  message += "<option value='elecraft'>Elecraft</option>";
   message += "<option value='serial'>Serial</option>";
   message += "<option value='http'>HTTP</option>";
   message += "<option value='mqtt'>MQTT</option>";
@@ -491,7 +572,7 @@ void handleRoot() {
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
   message += "serialonly [true|false] (disables yaesu and wifi entirely)</br>";
-  message += "setmode [yaesu|icom|serial|http|mqtt|rigctl|none]</br>";
+  message += "setmode [yaesu|yaesu817|icom|sunsdr|elecraft|serial|http|mqtt|rigctl|none]</br>";
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
@@ -502,7 +583,7 @@ void handleRoot() {
   message += "setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
   message += "setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
-  message += "/setmode mode=[yaesu|icom|serial|http|mqtt|rigctl|none]</br>";
+  message += "/setmode mode=[yaesu|yaesu817|icom|sunsdr|elecraft|serial|http|mqtt|rigctl|none]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
@@ -536,8 +617,10 @@ void handleRoot() {
   message += "mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime</br></br>";
   message += "When serialonly is enabled neither http/mqtt (wifi is disabled) nor yaesu can be used</br>";
   message += "You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial</br>";
-  message += "In yaesu mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable (default mode on boot)</br>";
+  message += "In yaesu mode only the Yaesu band data is used for band selection and rx/tx is only via the control cable</br>";
+  message += "In yaesu817 mode only the Yaesu standard voltage is used for band selection and rx/tx is only via the control cable</br>";
   message += "In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable</br>";
+  message += "In sunsdr mode only the band data is used for band selection and rx/tx is only via the control cable</br>";
   message += "In serial mode we only accept band/freq selection and rx/tx via serial</br>";
   message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages</br>";
   message += "In http mode we only accept band/freq selection and rx/tx via http messages</br>";
@@ -615,6 +698,12 @@ void setMode(String value) {
     if ((value == "rigctl") && (!testRigctlServer())) {
       return;
     }
+    if (((value == "sunsdr") || (value == "yaesu")) && (!setupBandData())) {
+      return;
+    }
+    if ((value == "elecraft") && (!setupMAX3232)) {
+      return;
+    }
     mode = value;
     //frequency = "0";
     //previous_frequency = "0";
@@ -656,44 +745,87 @@ void setBand(String band) {
     // enable the 6m band with the current design. Not really an issue as this amp is intended to be used with the hermes lite which can't do 6m anyway.
     
     int pwm_value;
+    int yaesu_pwm_value; // minipa50 uses yaesu standard voltages so we name var accordingly
 
     switch (bandInt) {
       case 160:
         pwm_value = 5;
+        yaesu_pwm_value = 8;
+        hr_band = 10;
         break;
       case 80:
         pwm_value = 40;
+        yaesu_pwm_value = 30;
+        hr_band = 9;
         break;
       case 60:
         pwm_value = 70;
+        yaesu_pwm_value = 80;
+        hr_band = 8;
         break;
       case 40:
         pwm_value = 95;
+        yaesu_pwm_value = 80;
+        hr_band = 7;
         break;
       case 30:
         pwm_value = 120;
+        yaesu_pwm_value = 100;
+        hr_band = 6;
         break;
       case 20:
         pwm_value = 150;
+        yaesu_pwm_value = 130;
+        hr_band = 5;
         break;
       case 17:
         pwm_value = 210;
+        yaesu_pwm_value = 200;
+        hr_band = 4;
         break;
       case 15:
         pwm_value = 230;
+        yaesu_pwm_value = 210;
+        hr_band = 3;
         break;
       case 12:
         pwm_value = 255;
+        yaesu_pwm_value = 230;
+        hr_band = 2;
+        break;
+      case 11:
+        pwm_value = 255;
+        yaesu_pwm_value = 230;
+        hr_band = 1;
         break;
       case 10:
         pwm_value = 255;
+        yaesu_pwm_value = 230;
+        hr_band = 1;
+        break;
+      case 6:
+        pwm_value = 255;
+        yaesu_pwm_value = 255;
+        hr_band = 0;
         break;
       default:
         pwm_value = 0;
+        yaesu_pwm_value = 0;
+        hr_band = 11;
         break;
     }
 
-    analogWrite(band_pin, pwm_value);
+    if (amplifier == "xpa125b") {
+      analogWrite(band_pin, pwm_value);
+    } else if (amplifier == "minipa50") {
+      analogWrite(band_pin, yaesu_pwm_value);
+    } else if (amplifier = "hardrock50") {
+      if (hr_band != prev_hr_band) {
+        sprintf(ser_buffer, "HRBN%u;\n", hr_band);
+        MAX3232.write(ser_buffer);
+        prev_hr_band = hr_band;
+      }
+    }
     current_band = bandInt;
     if ( current_band != previous_band ) {
       Serial.print("band ");
@@ -704,13 +836,28 @@ void setBand(String band) {
 }
 
 void setBandVoltage(int voltage) {
+
+  // Yaesu standard voltages used in the 817/818
+  // (Mhz | mV)
+
+  // 1.8  | 330
+  // 3.5  | 670
+  // 7.0  | 1000
+  // 10.0 | 1330
+  // 14.0 | 1670
+  // 18.0 | 2000
+  // 21.0 | 2330
+  // 24.5 | 2670
+  // 28.0 | 3000
+  // 50.0 | 3330
+  
   if ((voltage >= 5) && (voltage <= 20)) {
     setBand("160");
   } else if ((voltage >= 20) && (voltage <= 30)) {
     setBand("80");
   } else if ((voltage >= 30) && (voltage <= 40)) {
     setBand("60");
-  } else if ((voltage >= 40) && (voltage <= 50)) {
+  } else if ((voltage >= 30) && (voltage <= 40)) {
     setBand("40");
   } else if ((voltage >= 50) && (voltage <= 60)) {
     setBand("30");
@@ -774,6 +921,8 @@ void setFreq(String freq) {
     setBand("11");
    } else if (regexMatch(charFreq, "^28......$")) {
     setBand("10");
+   } else if (regexMatch(charFreq, "^5.......$")) {
+    setBand("6");
    } else {
     Serial.print("No matching band found for ");
     Serial.println(frequency);
@@ -881,11 +1030,15 @@ void setup(void) {
   delay(500); // computer serial port takes time to be available after reset
   Serial.println("XPA125B controller started");
 
-  BTserial.begin(9600);
-
+  if (hl_05_enabled == true) {
+    BTserial.begin(9600);
+  }
+  
   if (wifi_enabled == true) {
     wifi("enable");
   }
+
+  setupAmplifier(amplifier);
   
   // set to 160m and 0Hz by default
   setBand("160");
@@ -904,8 +1057,8 @@ void setup(void) {
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/band", "160", true);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txtime", "0", false);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txblocktimer", "0", false);
-    char modeChar[10];
-    mode.toCharArray(modeChar, 10);
+    char modeChar[20];
+    mode.toCharArray(modeChar, 20);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/mode", modeChar, true);
   }
 
@@ -1145,7 +1298,7 @@ void loop(void) {
    } 
  }  
 
- if ((mode == "yaesu") || (mode == "icom")) {
+ if (((((mode == "yaesu") || (mode == "yaesu817") || (mode == "icom") || (mode == "sunsdr") || (mode == "elecraft"))))) {
   delay(10); // digital pin needs time to settle between reads
   rx_state = digitalRead(tx_pin);
   if ((rx_state == LOW) && (serialonly == false)) {
@@ -1163,7 +1316,7 @@ void loop(void) {
    }
  }
 
- if ((mode == "yaesu") && (serialonly == false)) {
+ if ((mode == "yaesu817") && (serialonly == false)) {
     delay(10); // ADC needs time to settle between reads
     yaesu_band_voltage = analogRead(yaesu_band_pin);
     setBandVoltage(yaesu_band_voltage);
@@ -1291,7 +1444,7 @@ void loop(void) {
  // The BT name of the HC-05 is set with 'AT+NAME=XPA128B' and password with 'AT+PSWD="12345"'
  // There is a button near the EN pin of HC-05 module. Press that button, apply power and then release. You are now in AT command mode.
  // Continuous blinking of LED indicates it is in data mode and delayed blinking (2 seconds) indicates the module is in AT command mode.
- if (mode == "icom") {
+ if ((mode == "icom") && (hl_05_enabled == true)) {
   if (BTserial.available())
   {  
       int bt_c = BTserial.read() & 0x00ff;
@@ -1326,6 +1479,84 @@ void loop(void) {
       bt_freq = String(bt_Hz);
       setFreq(bt_freq);
     }
+  }
+ }
+
+ if ((mode == "sundsr") && (serialonly == false)) {
+  delay(10);
+  int x3 = digitalRead(band_data_1);
+  int x4 = digitalRead(band_data_2);
+  int x5 = digitalRead(band_data_3);
+  int x6 = digitalRead(band_data_4);
+  
+  if ((x3 == LOW) && (x4 == LOW) && (x5 == LOW) && (x6 == HIGH)) {
+    setBand("160");
+  } else if ((x3 == LOW) && (x4 == LOW) && (x5 == HIGH) && (x6 == LOW)) {
+    setBand("80");
+  } else if ((x3 == LOW) && (x4 == LOW) && (x5 == HIGH) && (x6 == HIGH)) {
+    setBand("60");
+  } else if ((x3 == LOW) && (x4 == HIGH) && (x5 == LOW) && (x6 == LOW)) {
+    setBand("40");
+  } else if ((x3 == LOW) && (x4 == HIGH) && (x5 == LOW) && (x6 == HIGH)) {
+    setBand("30");
+  } else if ((x3 == LOW) && (x4 == HIGH) && (x5 == HIGH) && (x6 == LOW)) {
+    setBand("20");
+  } else if ((x3 == LOW) && (x4 == HIGH) && (x5 == HIGH) && (x6 == HIGH)) {
+    setBand("17");
+  } else if ((x3 == HIGH) && (x4 == LOW) && (x5 == LOW) && (x6 == LOW)) {
+    setBand("15");
+  } else if ((x3 == HIGH) && (x4 == LOW) && (x5 == LOW) && (x6 == HIGH)) {
+    setBand("12");
+  } else if ((x3 == HIGH) && (x4 == LOW) && (x5 == HIGH) && (x6 == LOW)) {
+    setBand("10");
+  } else if ((x3 == HIGH) && (x4 == LOW) && (x5 == HIGH) && (x6 == HIGH)) {
+    setBand("6");
+  } 
+ }
+
+ if ((mode == "yaesu") && (serialonly == false)) {
+  delay(10);
+  int A = digitalRead(band_data_1);
+  int B = digitalRead(band_data_2);
+  int C = digitalRead(band_data_3);
+  int D = digitalRead(band_data_4);
+  
+  if ((A == HIGH) && (B == LOW) && (C == LOW) && (D == LOW)) {
+    setBand("160");
+  } else if ((A == LOW) && (B == HIGH) && (C == LOW) && (D == LOW)) {
+    setBand("80");
+  } else if ((A == HIGH) && (B == HIGH) && (C == LOW) && (D == LOW)) {
+    setBand("60");
+  } else if ((A == HIGH) && (B == HIGH) && (C == LOW) && (D == LOW)) {
+    setBand("40");
+  } else if ((A == LOW) && (B == LOW) && (C == HIGH) && (D == LOW)) {
+    setBand("30");
+  } else if ((A == HIGH) && (B == LOW) && (C == HIGH) && (D == LOW)) {
+    setBand("20");
+  } else if ((A == LOW) && (B == HIGH) && (C == HIGH) && (D == LOW)) {
+    setBand("17");
+  } else if ((A == HIGH) && (B == HIGH) && (C == HIGH) && (D == LOW)) {
+    setBand("15");
+  } else if ((A == LOW) && (B == LOW) && (C == LOW) && (D == HIGH)) {
+    setBand("12");
+  } else if ((A == HIGH) && (B == LOW) && (C == LOW) && (D == HIGH)) {
+    setBand("10");
+  } else if ((A == LOW) && (B == HIGH) && (C == LOW) && (D == HIGH)) {
+    setBand("6");
+  } 
+ }
+
+ if ((mode == "elecraft") && (serialonly == false)) {
+  MAX3232.print("IF;"); // request frequency/mode
+
+  if (MAX3232.available()) {
+   String serialValue = MAX3232.readStringUntil(';');
+   // the response should start with IF and then frequency in Hz, followed by mode
+   // need more info to write this part
+   String response_freq = (getValue(serialValue,' ',0)); // change to whatever is needed to extract the frequency
+   setFreq("response_freq");
+   String response_mode = (getValue(serialValue,' ',1)); // change to whatever is needed to extract the mode
+   setRigMode("response_mode");
   }
  }
 }
