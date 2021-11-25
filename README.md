@@ -123,7 +123,7 @@ That's it - you now have PTT and automatic band selection. For other software, s
   
 The SunSDR radios provide an EXT CTRL port which can be used to signal band and PTT. X1 – X7 are programmable and X8 is always PTT. We will use X3 - X6 for band selection. Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damange the D1 Mini. An Arduino is 5VDC so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
   
-1. Wire the EXT CTRL port to the D1 Mini via a level shifter
+1. Wire the EXT CTRL port to the D1 Mini via a level shifter for X3 - X6 and X8 directly onto the ptt_pin
 2. Configure the controller with `mode = "sunsdr"` and ensure `hl_05_enabled = false` (no other config needed)
   
 # MQTT
