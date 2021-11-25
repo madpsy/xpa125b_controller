@@ -8,7 +8,10 @@ Supported radios:
 + Yaesu (including 817/818)
 + Icom (via Bluetooth, such as the IC-705)
 + SunSDR (EXT CTRL port)
-+ Rigctl (any Hamlib compatible rig)
++ SparkSDR
++ Rigctld (any Hamlib compatible rig)
+
+Rigctld support is the major feature which allows this to work with almost any radio, including SDRs.
 
 Supported APIs:
 
