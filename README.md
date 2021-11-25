@@ -5,7 +5,7 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 
 Supported APIs/protocols:
 
-+ Yaesu (Yaesu standard band voltages)
++ Yaesu (ACC port)
 + Icom (via Bluetooth, such as the IC-705)
 + SunSDR (EXT CTRL port)
 + Rigctl (any Hamlib compatible rig)
