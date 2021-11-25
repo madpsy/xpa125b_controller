@@ -88,6 +88,8 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
 # Yaesu Mode
 
 Most Yaesu radios (except the 817/818 - see below) use a similar method to SunSDR. There are four pins named Band A - D. We read the logic levels of the pins from the ACC port to determinte the band. PTT is handled via another pin called 'TX GND'.
+
+Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damage the D1 Mini. An Arduino is 5VDC logic level so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
   
 1. Wire up the ACC port using the Band pins (via a logic level shifter) and TX GND pin.
 2. Configure the controller with `mode = "yaesu"` and ensure `hl_05_enabled = false` (no other config needed)
@@ -140,7 +142,9 @@ That's it - you now have PTT and automatic band selection. For other software, s
 
 # SunSDR
   
-The SunSDR radios provide an EXT CTRL port which can be used to signal band and PTT. X1 – X7 are programmable and X8 is always PTT. We will use X3 - X6 for band selection. Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damage the D1 Mini. An Arduino is 5VDC logic level so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
+The SunSDR radios provide an EXT CTRL port which can be used to signal band and PTT. X1 – X7 are programmable and X8 is always PTT. We will use X3 - X6 for band selection.
+
+Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damage the D1 Mini. An Arduino is 5VDC logic level so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
   
 1. Wire the EXT CTRL port to the D1 Mini via a logic level shifter for X3 - X6 and X8 directly onto the ptt_pin
 2. Configure the controller with `mode = "sunsdr"` and ensure `hl_05_enabled = false` (no other config needed)
