@@ -17,9 +17,9 @@ Rigctld support is the major feature which allows this to work with almost any r
 Supported Amplifiers:
 
 + Xiegu XPA125B
-+ Hardrock-50
++ Hardrock-50 (serial and Yaesu 817 mode)
 + MiniPA50 
-+ Yaesu (any compatible with the Yaesu 817)
++ Yaesu (Yaesu 817 compatible amplifiers)
 
 Supported APIs:
 
