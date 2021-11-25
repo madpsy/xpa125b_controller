@@ -1,5 +1,5 @@
 # XPA125B Amplifier Network & Serial Controller
-Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, `icom` and `serial` mode. This would enable you to use a Yaesu or Icom rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and yaesu modes the latency is even less.
+Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, `icom`, `sunsdr` and `serial` mode. This would enable you to use a Yaesu or Icom rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and yaesu modes the latency is even less.
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
 
@@ -7,6 +7,7 @@ Supported APIs/protocols:
 
 + Yaesu (Yaesu standard band voltages)
 + Icom (via Bluetooth, such as the IC-705)
++ SunSDR (EXT CTRL port)
 + Rigctl (any Hamlib compatible rig)
 + Serial
 + Web Interface
@@ -21,6 +22,7 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 
 + Use any Yaesu radio with the amplifier (no WiFi required)
 + Use the Icom-705 via Bluetooth with the amplifier (no WiFi required)
++ Use a SunSDR via EXT CTRL port with a level converter (no WiFi required)
 + Use any Hamlib compatible radio with the amplifier (no WiFi required)
 + Provide a Web/REST/MQTT/Serial API interface to rigctl
 + Allow automation via Node-RED to any hamlib compatible radio
@@ -91,7 +93,7 @@ The preferred method of interfacing the controller with an IC-705 is to use the 
   1. Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back).
   2. Connect the controller (name 'XPA128B') in the Bluetooth menu. Security code: 1234.
   3. Connect the control cable to the 3.5mm port on the IC-705 (this is used for PTT detection).
-  4. Configure the controller with `mode = "icom"` (no other config needed)
+  4. Configure the controller with `mode = "icom"` and `hl_05_enabled = true` (no other config needed)
   
 ## Solution 2
   
@@ -116,6 +118,13 @@ To solve the lack of band selection you can utilise `rigctld` running on a compu
   7. In a terminal: `./amp_serial_control.sh localhost 51111 <path to controller serial device>`
 
 That's it - you now have PTT and automatic band selection. For other software, such as WSJX-T, which needs control of the radio you can use `Hamlib` as the radio type and point it at rigctld using `localhost` port `51111`.
+
+# SunSDR
+  
+The SunSDR radios provide an EXT CTRL port which can be used to signal band and PTT. X1 – X7 are programmable and X8 is always PTT. We will use X3 - X6 for band selection. Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damange the D1 Mini. An Arduino is 5VDC so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
+  
+1. Wire the EXT CTRL port to the D1 Mini via a level shifter
+2. Configure the controller with `mode = "sunsdr"` and ensure `hl_05_enabled = false` (no other config needed)
   
 # MQTT
 
