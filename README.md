@@ -8,7 +8,7 @@ Supported radios:
 + Yaesu (including 817/818)
 + Icom (via Bluetooth, such as the IC-705)
 + SunSDR (EXT CTRL port)
-+ Elecraft (K3S/K3/KX3/KX2)
++ Elecraft (KX2 / KX3)
 + SparkSDR
 + Rigctld (any Hamlib compatible rig)
 
@@ -163,7 +163,7 @@ Because the voltage on the pins are 5VDC we need to level shift them down to 3V3
 
 # Elecraft
 
-Elecraft radios such as the KX3 provide a serial interface for control. We can use this to request current frequency and band from the rig. You need to use a MAX3232 serial interface with the D1 then wire it up to the 3.5mm ACC1 port on the radio. The jack tip connection is RX data from the MAX3232 and ring is TX data to the MAX3232.
+Elecraft radios such as the KX2 and KX3 provide a serial interface for control. We can use this to request current frequency and band from the rig. You need to use a MAX3232 serial interface with the D1 then wire it up to the 3.5mm ACC1 port on the radio. The jack tip connection is RX data from the MAX3232 and ring is TX data to the MAX3232.
   
 1. Connect the radio's ACC port to the controller (3.5mm to RS232)
 2. Configure the controller with `mode = "elecraft"` and ensure `max3232_enabled = true` (no other config needed)
