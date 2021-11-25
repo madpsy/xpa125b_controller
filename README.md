@@ -37,7 +37,7 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 + Use any Yaesu radio with the amplifier (no WiFi required)
 + Use the Icom-705 via Bluetooth with the amplifier (no WiFi required)
 + Use a SunSDR via EXT CTRL port with a level converter (no WiFi required)
-+ Use an Elecraft KX3 (via its serial port)
++ Use an Elecraft KX2/KX3 (no WiFi required)
 + Use any Hamlib compatible radio with the amplifier (no WiFi required)
 + Provide a Web/REST/MQTT/Serial API interface to rigctl
 + Allow automation via Node-RED to any hamlib compatible radio
