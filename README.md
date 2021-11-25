@@ -239,7 +239,7 @@ Note: mDNS should be xpa125b.local
 + `mosquitto_pub -h hostname -u username -P password -t xpa125b/setmode -m http`
 + `mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime`
 
-When `serialonly` is enabled neither http/mqtt (wifi is disabled) nor yaesu/icom can be used. You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial
+When `serialonly` is set to `true` neither http/mqtt (wifi is disabled) nor yaesu/icom/sunsdr/elecraft etc can be used. You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial
   
 Note: When using `setfreq` it automatically sets the correct band. Therefore, use either `setfreq` or `setband` but not both.
 
