@@ -8,7 +8,7 @@ Supported radios:
 + Yaesu (including 817/818)
 + Icom (via Bluetooth, such as the IC-705)
 + SunSDR (EXT CTRL port)
-+ Elecraft (e.g. KX3)
++ Elecraft (K3S/K3/KX3/KX2)
 + SparkSDR
 + Rigctld (any Hamlib compatible rig)
 
