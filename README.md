@@ -94,6 +94,8 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   `curl -s -d 'freq=7074000' http://xpa125b.local/setrigctlfreq`
   
  In essense this operates as an API translation layer to rigctl.
+  
+ If you want to use rigctl for band selection but prefer PTT to be via the control cable you can set `rigctl_hybrid` to `true`. This will reduce PTT latency.
  
  If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873.
   
@@ -248,7 +250,7 @@ Note: When using `setfreq` it automatically sets the correct band. Therefore, us
 + In serial mode we only accept band/freq selection and rx/tx via serial
 + In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
 + In http mode we only accept band/freq selection and rx/tx via http messages
-+ In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig itself in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate)
++ In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig itself in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate). You can set `rigctl_hybrid` to `true` which will use the control cable for PTT instead of polling rigctl.
 + In none mode then no control is possible
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled.
