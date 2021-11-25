@@ -3,12 +3,15 @@ Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
 
-Supported APIs/protocols:
+Supported radios:
 
-+ Yaesu (ACC port)
++ Yaesu (including 817/818)
 + Icom (via Bluetooth, such as the IC-705)
 + SunSDR (EXT CTRL port)
 + Rigctl (any Hamlib compatible rig)
+
+Supported APIs:
+
 + Serial
 + Web Interface
 + REST
@@ -82,6 +85,22 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
  
  If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873.
   
+# Yaesu Mode
+
+Most Yaesu radios (except the 817/818 - see below) use a similar method to SunSDR. There are four pins named Band A - D. We read the logic levels of the pins from the ACC port to determinte the band. PTT is handled via another pin called 'TX GND'.
+  
+1. Wire up the ACC port using the Band pins (via a logic level shifter) and TX GND pin.
+2. Configure the controller with `mode = "yaesu"` and ensure `hl_05_enabled = false` (no other config needed)
+
+You can still enable WiFi and/or MQTT with this mode if desired. This allows you to have access to the other APIs and web interface aswel as push MQTT events but have control entirely handled locally.
+  
+# Yaesu 817 Mode
+
+The Yaesu 817 & 818 radios use a different method for band selection. They have a stepped voltage output so we use the ADC in the D1 Mini to read this voltage and determine the band.
+
+1. Wire up the ACC port using the band voltage pin and TX GND pin.
+2. Configure the controller with `mode = "yaesu817"` (no other config needed)
+
 # Icom IC-705
 
 A popular QRP radio is the Icom-705 and the XPA125B makes a good companion in situations where you need extra power. The problem is only PTT works using a cable from the radio to the amplifier - no automatic band selection. 
@@ -123,7 +142,7 @@ That's it - you now have PTT and automatic band selection. For other software, s
   
 The SunSDR radios provide an EXT CTRL port which can be used to signal band and PTT. X1 – X7 are programmable and X8 is always PTT. We will use X3 - X6 for band selection. Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damage the D1 Mini. An Arduino is 5VDC logic level so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
   
-1. Wire the EXT CTRL port to the D1 Mini via a level shifter for X3 - X6 and X8 directly onto the ptt_pin
+1. Wire the EXT CTRL port to the D1 Mini via a logic level shifter for X3 - X6 and X8 directly onto the ptt_pin
 2. Configure the controller with `mode = "sunsdr"` and ensure `hl_05_enabled = false` (no other config needed)
   
 # MQTT
@@ -144,7 +163,7 @@ A simple web interface is available on port 80 which allows access to basic func
 # Valid serial commands (115200 baud):
 
 + serialonly [true|false] (disables every other mode and wifi entirely)
-+ setmode [yaesu|icom|serial|http|mqtt|rigctl|none]
++ setmode [yaesu|yaesu817|icom|serial|http|mqtt|rigctl|none]
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
 + setfreq [frequency in Hz]
@@ -159,7 +178,7 @@ Note: There are no commands to get current states over serial. The reason being 
 
 # Valid HTTP POST paths:
 
-+ /setmode mode=[yaesu|icom|serial|http|mqtt|rigctl|none]
++ /setmode mode=[yaesu|yaesu817|icom|serial|http|mqtt|rigctl|none]
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
@@ -228,14 +247,6 @@ In a different terminal you can watch the serial output by running:
 Now all frequency, mode and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where WiFi connectivity is unavailable or undesirable. You can still enable WiFi with serial mode if you want the control to remain via serial but still have access to the other APIs and optionally also publish events to MQTT.
   
 Note: The example scripts are very bare bones and intended to demonstrate the feature. One improvement would be to not open a new TCP connection to rigctld every time but instead keep it open and send commands over the same session.
-
-# Yaesu Mode
-
-Yaesu is the most basic mode of operation. This simply reads the incoming band voltage from a Yaesu compatible radio and outputs the correct voltage to the amplifier. PTT is handled in the same way. As well as automatic band control the other advantage of using the controller like this is the TX Block Timer.
-  
-In this mode you don't need WiFi or serial. As the default mode is already set to `yaesu` simply compile as is and the controller will work straight away. You could even power it from a USB battery pack.
-
-You can still enable WiFi and/or MQTT with this mode if desired. This allows you to have access to the other APIs and web interface aswel as push MQTT events but have control entirely handled locally.
   
 # TX Block
   
