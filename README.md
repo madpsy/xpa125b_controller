@@ -1,5 +1,5 @@
 # XPA125B Amplifier Network & Serial Controller
-Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, `icom`, `sunsdr` and `serial` mode. This would enable you to use a Yaesu, Icom or SunSDR rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and yaesu modes the latency is even less.
+Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, `icom`, `sunsdr`, `elecraft` and `serial` mode. This would enable you to use a Yaesu, Icom, SunSDR or Elecraft rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in network modes which is perfectly adequate for almost all digital work as well as phone. In serial and yaesu modes the latency is even less.
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
 
@@ -8,6 +8,7 @@ Supported radios:
 + Yaesu (including 817/818)
 + Icom (via Bluetooth, such as the IC-705)
 + SunSDR (EXT CTRL port)
++ Elecraft (e.g. KX3)
 + SparkSDR
 + Rigctld (any Hamlib compatible rig)
 
@@ -29,6 +30,7 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 + Use any Yaesu radio with the amplifier (no WiFi required)
 + Use the Icom-705 via Bluetooth with the amplifier (no WiFi required)
 + Use a SunSDR via EXT CTRL port with a level converter (no WiFi required)
++ Use an Elecraft KX3 (via its serial port)
 + Use any Hamlib compatible radio with the amplifier (no WiFi required)
 + Provide a Web/REST/MQTT/Serial API interface to rigctl
 + Allow automation via Node-RED to any hamlib compatible radio
@@ -151,7 +153,14 @@ Because the voltage on the pins are 5VDC we need to level shift them down to 3V3
   
 1. Wire the EXT CTRL port to the D1 Mini via a logic level shifter for X3 - X6 and X8 directly onto the ptt_pin
 2. Configure the controller with `mode = "sunsdr"` and ensure `hl_05_enabled = false` (no other config needed)
+
+# Elecraft
+
+Elecraft radios such as the KX3 provide a serial interface for control. We can use this to request current frequency and band from the rig. You need to use a MAX3232 serial interface with the D1 then wire it up to the 3.5mm ACC1 port on the radio. The jack tip connection is RX data from the MAX3232 and ring is TX data to the MAX3232.
   
+1. Connect the radio's ACC port to the controller (3.5mm to RS232)
+2. Configure the controller with `mode = "elecraft"` and ensure `max3232_enabled = true` (no other config needed)
+
 # MQTT
 
 As well as allowing control of the amplifier by publishing MQTT events the system is always updating current state to MQTT. You can use this feature to act as a bridge between Rigctl and MQTT even when no amplifier is involved. To do this:
@@ -170,7 +179,7 @@ A simple web interface is available on port 80 which allows access to basic func
 # Valid serial commands (115200 baud):
 
 + serialonly [true|false] (disables every other mode and wifi entirely)
-+ setmode [yaesu|yaesu817|icom|serial|http|mqtt|rigctl|none]
++ setmode [yaesu|yaesu817|icom|elecraft|serial|http|mqtt|rigctl|none]
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
 + setfreq [frequency in Hz]
@@ -185,7 +194,7 @@ Note: There are no commands to get current states over serial. The reason being 
 
 # Valid HTTP POST paths:
 
-+ /setmode mode=[yaesu|yaesu817|icom|serial|http|mqtt|rigctl|none]
++ /setmode mode=[yaesu|yaesu817|icom|elecraft|serial|http|mqtt|rigctl|none]
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
