@@ -95,7 +95,7 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
  In essense this operates as an API translation layer to rigctl.
   
- If you want to use rigctl for band selection but prefer PTT to be via the control cable you can set `rigctl_hybrid` to `true`. This will reduce PTT latency.
+ If you want to use rigctl for band selection but prefer PTT to be via the control cable you can set `hybrid` to `true`.
  
  If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873.
   
@@ -250,8 +250,10 @@ Note: When using `setfreq` it automatically sets the correct band. Therefore, us
 + In serial mode we only accept band/freq selection and rx/tx via serial
 + In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
 + In http mode we only accept band/freq selection and rx/tx via http messages
-+ In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig itself in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate). You can set `rigctl_hybrid` to `true` which will use the control cable for PTT instead of polling rigctl.
++ In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig itself in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate.
 + In none mode then no control is possible
+  
+You can set `hybrid` to `true` which will use the control cable for PTT in every mode.
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled.
 
@@ -269,7 +271,11 @@ In a different terminal you can watch the serial output by running:
   
 `./amp_serial_messages.sh /dev/ttyUSB0`
   
-Now all frequency, mode and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. Hopefully this demonstrates how flexible the controller can be for scenarios where WiFi connectivity is unavailable or undesirable. You can still enable WiFi with serial mode if you want the control to remain via serial but still have access to the other APIs and optionally also publish events to MQTT.
+Now all frequency, mode and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. 
+  
+To reduce PTT latency you can set `hybrid` to `true` in the config. This will use the analog control cable instead of rigctl for switching rx/tx.
+  
+Hopefully this demonstrates how flexible the controller can be for scenarios where WiFi connectivity is unavailable or undesirable. You can still enable WiFi with serial mode if you want the control to remain via serial but still have access to the other APIs and optionally also publish events to MQTT.
   
 Note: The example scripts are very bare bones and intended to demonstrate the feature. One improvement would be to not open a new TCP connection to rigctld every time but instead keep it open and send commands over the same session.
   
