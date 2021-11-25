@@ -1,7 +1,7 @@
 // *********** START CONFIG ***********
 
 // WiFi config
-bool wifi_enabled = false
+bool wifi_enabled = false;
 const char* ssid = "";
 const char* password = "";
 
@@ -154,6 +154,22 @@ String getRemoteIP() {
   remote_ip = server.client().remoteIP();
   // this function actually returns a string 
   return server.client().remoteIP().toString();
+}
+
+String MAX3232serialRead() {
+  const unsigned int MAX_MESSAGE_LENGTH = 12;
+  while (MAX3232.available() >0) {
+   static char message[MAX_MESSAGE_LENGTH];
+   static unsigned int message_pos = 0;
+   char inByte = Serial.read();
+   if (message_pos < MAX_MESSAGE_LENGTH - 1) {
+     message[message_pos] = inByte;
+     message_pos++;
+   } else {
+    message_pos = 0;
+    return (String(message));
+   }
+  }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -1547,16 +1563,10 @@ void loop(void) {
  }
 
  if ((mode == "elecraft") && (serialonly == false)) {
-  MAX3232.print("IF;"); // request frequency/mode
+  MAX3232.print("FA;"); // request VFO frequency
+  setFreq(MAX3232serialRead());
 
-  if (MAX3232.available()) {
-   String serialValue = MAX3232.readStringUntil(';');
-   // the response should start with IF and then frequency in Hz, followed by mode
-   // need more info to write this part
-   String response_freq = (getValue(serialValue,' ',0)); // change to whatever is needed to extract the frequency
-   setFreq("response_freq");
-   String response_mode = (getValue(serialValue,' ',1)); // change to whatever is needed to extract the mode
-   setRigMode("response_mode");
-  }
+  MAX3232.print("MD;"); // request mode
+  setRigMode(MAX3232serialRead());
  }
 }
