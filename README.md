@@ -14,6 +14,13 @@ Supported radios:
 
 Rigctld support is the major feature which allows this to work with almost any radio, including SDRs.
 
+Supported Amplifiers:
+
++ Xiegu XPA125B
++ Hardrock-50
++ MiniPA50 
++ Yaesu (any compatible with the Yaesu 817)
+
 Supported APIs:
 
 + Serial
