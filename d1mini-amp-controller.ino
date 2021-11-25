@@ -14,6 +14,9 @@ const char* mqttpass = "";
 // default mode
 String mode = "yaesu";
 
+// always use analog control cable for PTT
+bool hybrid = false;
+
 // enable bluetooth (required for Icom)
 bool hl_05_enabled = false;
 
@@ -642,6 +645,7 @@ void handleRoot() {
   message += "In http mode we only accept band/freq selection and rx/tx via http messages</br>";
   message += "In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate.</br>";
   message += "In none mode then no control is possible</br></br>";
+  message += "If 'hybrid' is set to true in the config then the control cable will be used for PTT in every mode</br></br>";
   message += "Example rigctld run command (TS-2000 has ID 2014):</br></br>";
   message += "rigctld.exe -r COM18 -m 2014 -s 57600 -t 51111</br></br>";
   message += "If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled</br></br>";
@@ -1138,7 +1142,7 @@ void setup(void) {
   });
   
   server.on("/setstate", []() {
-    if (mode == "http") {
+    if ((mode == "http") && (hybrid == false)) {
       if ((server.method() == HTTP_POST) && (server.argName(0) == "state")) {
         String state = server.arg(0);
         setState(state);
@@ -1147,7 +1151,7 @@ void setup(void) {
         server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'state' and a value");
       }
     } else {
-      server.send(403, "text/html; charset=UTF-8", "HTTP control disabled");
+      server.send(403, "text/html; charset=UTF-8", "HTTP control disabled or hybrid is enabled");
     }
   });
   
@@ -1294,7 +1298,7 @@ void loop(void) {
      setRigctlMode(value);
    } else if ((command == "setrigctlptt") && (mode == "rigctl")) {
      setRigctlPtt(value);
-   } else if ((command == "setstate") && (mode == "serial")) {
+   } else if (((command == "setstate") && (mode == "serial") && (hybrid == false))) {
      setState(value);
    } else if (command == "setmqtt") {
      setMQTT(value);
@@ -1314,7 +1318,7 @@ void loop(void) {
    } 
  }  
 
- if (((((mode == "yaesu") || (mode == "yaesu817") || (mode == "icom") || (mode == "sunsdr") || (mode == "elecraft"))))) {
+ if (hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr" || mode == "elecraft") {
   delay(10); // digital pin needs time to settle between reads
   rx_state = digitalRead(tx_pin);
   if ((rx_state == LOW) && (serialonly == false)) {
@@ -1356,7 +1360,7 @@ void loop(void) {
      if (mode == "mqtt") {
         setFreq(message);
      }
-   } else if ((topic == "setstate") && (mode == "mqtt")) {
+   } else if ((((topic == "setstate") && (mode == "mqtt") && (hybrid == false)))) {
      setState(message);
    } else if ( topic == "setmode" ) {
      setMode(message);
@@ -1440,21 +1444,24 @@ void loop(void) {
   if (m_result != "error") {
     setRigMode(m_result);
   }
-  String t_result=sendRigctlCommand("t");
-  if (t_result == "1") {
-    current_rigctl_rx = false;
-    if (current_rigctl_rx != previous_rigctl_rx) {
-      setState("tx");
-      previous_rigctl_rx = false;
-    }
-  } else if (t_result == "0") {
-    current_rigctl_rx = true;
-    if (current_rigctl_rx != previous_rigctl_rx) {
-      setState("rx");
-      previous_rigctl_rx = true;
+
+  if (hybrid == false) {
+    String t_result=sendRigctlCommand("t");
+    if (t_result == "1") {
+      current_rigctl_rx = false;
+      if (current_rigctl_rx != previous_rigctl_rx) {
+        setState("tx");
+        previous_rigctl_rx = false;
+      }
+    } else if (t_result == "0") {
+      current_rigctl_rx = true;
+      if (current_rigctl_rx != previous_rigctl_rx) {
+        setState("rx");
+        previous_rigctl_rx = true;
+      }
     }
   }
- }
+ } 
 
  // Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back) and connect the controller ('XPA128B') in the Bluetooth menu. Security code: 1234.
  // The BT name of the HC-05 is set with 'AT+NAME=XPA128B' and password with 'AT+PSWD="12345"'
