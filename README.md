@@ -247,6 +247,8 @@ Note: When using `setfreq` it automatically sets the correct band. Therefore, us
 
 + In yaesu mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable
 + In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable
++ In sunsdr mode only the band data is used for band selection and rx/tx is only via the control cable
++ In elecraft mode we only accept band/freq selection and rx/tx via the serial port on the radio
 + In serial mode we only accept band/freq selection and rx/tx via serial
 + In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages
 + In http mode we only accept band/freq selection and rx/tx via http messages
