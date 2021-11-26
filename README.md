@@ -12,7 +12,7 @@ Supported radios:
 + SparkSDR
 + Rigctld (any Hamlib compatible rig)
 
-Rigctld support is the major feature which allows this to work with almost any radio, including SDRs.
+Rigctld support is the major feature which allows this to work with almost any radio, including SDRs such as the Flex 1500/3000, Hermes-Lite and ANAN based radios.
 
 Supported Amplifiers:
 
