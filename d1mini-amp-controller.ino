@@ -1,18 +1,18 @@
 // *********** START CONFIG ***********
 
 // WiFi config
-bool wifi_enabled = false;
+bool wifi_enabled = false
 const char* ssid = "";
 const char* password = "";
 
 // MQTT config
-bool mqtt_enabled = false;
+bool mqtt_enabled = false
 const char* mqttserver = "";
 const char* mqttuser = "";
 const char* mqttpass = "";
 
 // default mode
-String mode = "yaesu";
+String default_mode = "yaesu";
 
 // always use analog control cable for PTT
 bool hybrid = false;
@@ -110,6 +110,7 @@ bool current_rigctl_rx = 0;
 bool previous_rigctl_rx = 0;
 bool rigctl_address_set = false;
 bool rigctl_port_set = false;
+String mode = "none";
 String frequency = "0";
 String previous_frequency = "0";
 String rigctl_address;
@@ -124,6 +125,9 @@ String curState = "rx";
 String curBand = "0";
 String curMode = "none";
 String previousMode = "none";
+
+char* elecraft_response;
+int elecraft_value;
 
 char* Topic;
 byte* buffer;
@@ -159,20 +163,26 @@ String getRemoteIP() {
   return server.client().remoteIP().toString();
 }
 
-String MAX3232serialRead() {
+char* MAX3232serialRead(char term_char) {
   const unsigned int MAX_MESSAGE_LENGTH = 12;
   while (MAX3232.available() >0) {
    static char message[MAX_MESSAGE_LENGTH];
    static unsigned int message_pos = 0;
    char inByte = Serial.read();
-   if (message_pos < MAX_MESSAGE_LENGTH - 1) {
+   if ( inByte != term_char && (message_pos < MAX_MESSAGE_LENGTH - 1) ) {
      message[message_pos] = inByte;
      message_pos++;
    } else {
     message_pos = 0;
-    return (String(message));
+    return (message);
    }
   }
+}
+
+int get_elecraft_value(char* message) {
+  String stringMessage = String(message);
+  stringMessage.remove(0, 2);
+  return stringMessage.toInt();
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -266,7 +276,7 @@ bool setupAmplifier(String value) {
     Serial.println("Amplifier set to xpa125b");
     return true;
   } else if (value == "hardrock50") {
-    if (setupMAX3232) {
+    if (setupMAX3232()) {
       amplifier = "hardrock50";
       Serial.println("Amplifier set to hardrock50");
       return true;
@@ -640,6 +650,7 @@ void handleRoot() {
   message += "In yaesu817 mode only the Yaesu standard voltage is used for band selection and rx/tx is only via the control cable</br>";
   message += "In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable</br>";
   message += "In sunsdr mode only the band data is used for band selection and rx/tx is only via the control cable</br>";
+  message += "In elecraft mode we only accept band/freq selection and rx/tx via the serial port on the radio</br>";
   message += "In serial mode we only accept band/freq selection and rx/tx via serial</br>";
   message += "In mqtt mode we only accept band/freq selection and rx/tx via mqtt messages</br>";
   message += "In http mode we only accept band/freq selection and rx/tx via http messages</br>";
@@ -721,7 +732,7 @@ void setMode(String value) {
     if (((value == "sunsdr") || (value == "yaesu")) && (!setupBandData())) {
       return;
     }
-    if ((value == "elecraft") && (!setupMAX3232)) {
+    if ((value == "elecraft") && (!setupMAX3232())) {
       return;
     }
     mode = value;
@@ -1059,6 +1070,12 @@ void setup(void) {
   }
 
   setupAmplifier(amplifier);
+
+  if (hybrid == true) {
+    Serial.println("Hybrid mode is enabled");
+  } else {
+    Serial.println("Hybrid mode is disabled");
+  }
   
   // set to 160m and 0Hz by default
   setBand("160");
@@ -1085,7 +1102,6 @@ void setup(void) {
   if (rigctl_default_enable) {
     setRigctlAddress(rigctl_default_address);
     setRigctlPort(rigctl_default_port);
-    testRigctlServer();
   }
 
   server.on("/", handleRoot);
@@ -1255,9 +1271,7 @@ void setup(void) {
   server.onNotFound(handleNotFound);
 
   webServer(true);
-
-  Serial.print("mode ");
-  Serial.println(mode);
+  setMode(default_mode);
   Serial.print("band ");
   Serial.println(current_band);
   Serial.print("frequency ");
@@ -1318,7 +1332,7 @@ void loop(void) {
    } 
  }  
 
- if (hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr" || mode == "elecraft") {
+ if ((hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr") && (mode != "none")) {
   delay(10); // digital pin needs time to settle between reads
   rx_state = digitalRead(tx_pin);
   if ((rx_state == LOW) && (serialonly == false)) {
@@ -1570,10 +1584,56 @@ void loop(void) {
  }
 
  if ((mode == "elecraft") && (serialonly == false)) {
-  MAX3232.print("FA;"); // request VFO frequency
-  setFreq(MAX3232serialRead());
+  
+  MAX3232.print("FA;"); // request VFO A frequency
+  elecraft_response = MAX3232serialRead(';');
+  elecraft_value = get_elecraft_value(elecraft_response);
+  setFreq(String(elecraft_value));
 
-  MAX3232.print("MD;"); // request mode
-  setRigMode(MAX3232serialRead());
+  MAX3232.print("MD;"); // request VFO A mode
+  String response_mode;
+  elecraft_response = MAX3232serialRead(';');
+  elecraft_value = get_elecraft_value(elecraft_response);
+  
+  switch (elecraft_value) {
+      case 1:
+        response_mode = "LSB";
+        break;
+      case 2:
+        response_mode = "USB";
+        break;
+      case 3:
+        response_mode = "CW";
+        break;
+      case 4:
+        response_mode = "FM";
+        break;
+      case 5:
+        response_mode = "AM";
+        break;
+      case 6:
+        response_mode = "DATA";
+        break;
+      case 7:
+        response_mode = "CW-REV";
+        break;
+      // no '8' for whatever reason
+      case 9:
+        response_mode = "DATA-REV";
+        break;
+      default:
+        response_mode = "unknown";
+        break;
+  }
+  setRigMode(response_mode);
+
+  MAX3232.print("TQ;"); // request transmit state
+  elecraft_response = MAX3232serialRead(';');
+  elecraft_value = get_elecraft_value(elecraft_response);
+  if ( elecraft_value == 1 ) {
+    setState("tx");
+  } else {
+    setState("rx");
+  }
  }
 }
