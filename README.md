@@ -18,8 +18,7 @@ Supported Amplifiers:
 
 + Xiegu XPA125B
 + Hardrock-50 (serial and Yaesu 817 mode)
-+ MiniPA50 
-+ Yaesu (Yaesu 817 compatible amplifiers)
++ MiniPA50 (and other Yaesu 817 compatible amplifiers)
 
 Supported APIs:
 
