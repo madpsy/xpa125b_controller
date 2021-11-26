@@ -1,12 +1,12 @@
 // *********** START CONFIG ***********
 
 // WiFi config
-bool wifi_enabled = false
+bool wifi_enabled = false;
 const char* ssid = "";
 const char* password = "";
 
 // MQTT config
-bool mqtt_enabled = false
+bool mqtt_enabled = false;
 const char* mqttserver = "";
 const char* mqttuser = "";
 const char* mqttpass = "";
