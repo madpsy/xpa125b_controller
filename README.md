@@ -7,7 +7,7 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 
 ![internals](controller-internals.jpg)
 
-Supported radios:
+# Supported radios:
 
 + Yaesu (including 817/818)
 + Icom (via Bluetooth, such as the IC-705)
@@ -18,13 +18,15 @@ Supported radios:
 
 Rigctld support is the major feature which allows this to work with almost any radio, including SDRs such as the Flex 1500/3000, Hermes-Lite and ANAN based radios.
 
-Supported Amplifiers:
+# Supported Amplifiers:
 
 + Xiegu XPA125B
 + Hardrock-50 (serial and Yaesu 817 mode)
 + MiniPA50 (and other Yaesu 817 compatible amplifiers)
 
-Supported APIs:
+Adding additional amplifiers is fairly trivial providing it uses either voltage or serial for band control and PTT is triggered by grounding an input.
+
+# Supported APIs:
 
 + Serial
 + Web Interface
@@ -72,7 +74,7 @@ If you want to enable MQTT set the following:
 + `mqttserver` = <host>  (MQTT server hostname or IP address)
 + `mqttuser` = <username>  (MQTT username)
 + `mqttpass` = <password>  (MQTT password)
-
+  
 # Rigctl
 
 To make rigctl default on boot first ensure WiFi credentials are filled in and also set:
@@ -279,6 +281,32 @@ In a different terminal you can watch the serial output by running:
 Now all frequency, mode and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. 
   
 To reduce PTT latency you can set `hybrid` to `true` in the config. This will use the analog control cable instead of rigctl for switching rx/tx.
+
+## Bluetooth Serial Mode
+
+You can also use the HC-05 for sending serial commands and reading the output. We achieve this by redirecting all serial operations from the built in serial port to the HC-05. This is particularly useful if the controller is not plugged into the computer you want to use serial with (but in range of Bluetooth).
+
+Note: You can't use this with an Icom 705 (unless via rigctl) as the radio uses the HC-05 for communication.
+  
+The way this works is the HC-05 appears as a serial port once paired over Bluetooth. In Linux this is achieved using `rfcomm` which creates a pseudo serial device. This is transparent to the software accessing the device so you can do anything you usually can with serial devices. To use this feature with Linux:
+
+1. Set `use_bluetooth_serial` to `true` and `hc_05_enabled` to `true` in the config
+2. Run `hcitool scan` - this should find the controller as something like `98:D3:65:F1:3A:C0	XPA125B`
+3. Run `sudo bluetoothctl` - the CLI will start
+4. Run `trust 98:D3:65:F1:3A:C0` - use the MAC found with the previous scan
+5. Run `pair 98:D3:65:F1:3A:C0` - enter the PIN you chose when configuring the HC-05
+6. Run `set-alias XPA125B`
+7. Run `connect XPA125B`
+8. Run `quit` to close bluetoothctl
+9. Run `sudo rfcomm bind rfcomm0 98:D3:65:F1:3A:C0` - use the MAC of your own
+  
+Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following on from the example above you could use it with the script, like this:
+  
+`./amp_serial_control.sh localhost 51111 /dev/rfcomm0`
+
+`./amp_serial_messages.sh /dev/rfcomm0`
+
+Windows supports Bluetooth serial devices too (not sure about Mac) and there are even mobile phone apps available, such as `Serial Bluetooth Terminal` by Kai Morich for Android. If using that app I've found setting 'newline' to 'CR+LF' for both Send and Recieve works well.
   
 Hopefully this demonstrates how flexible the controller can be for scenarios where WiFi connectivity is unavailable or undesirable. You can still enable WiFi with serial mode if you want the control to remain via serial but still have access to the other APIs and optionally also publish events to MQTT.
   
