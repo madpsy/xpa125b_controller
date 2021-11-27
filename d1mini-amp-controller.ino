@@ -1,5 +1,11 @@
 // *********** START CONFIG ***********
 
+// Serial - baud rate and state if we should use the bluetooth module (hc-05) for normal serial use
+// Must also set hc_05_enabled for bluetooth serial mode.
+// Ensure newline is set to 'CR+LF' in the serial software
+int serial_baud = 115200;
+bool use_bluetooth_serial = false;
+
 // WiFi config
 bool wifi_enabled = false;
 const char* ssid = "";
@@ -12,17 +18,28 @@ const char* mqttuser = "";
 const char* mqttpass = "";
 
 // default mode
-String default_mode = "yaesu";
+String default_mode = "none";
 
 // always use analog control cable for PTT
 bool hybrid = false;
 
-// enable bluetooth (required for Icom)
-bool hl_05_enabled = false;
+// enable bluetooth (required for Icom).
+// To program the HC-05, set hc_05_program to true and hold the button on the module for 2 seconds when applying power
+// programming mode can also be used as an echo test
+// Set line ending to NL & CR
+// Sending 'AT' via the D1's serial should respond with 'OK'
+// AT+NAME:XPA125B
+// AT+PSWD:"6245"
+// AT+UART:38400,0,0
+bool hc_05_enabled = false;
+bool hc_05_program = false;
+int hc_05_baud = 38400;
 
 // enable MAX3232 (required for Elecraft radio or Hardrock-50 amplifier)
 bool max3232_enabled = false;
-long int max3232_baud = 38400;
+bool max3232_debug = false;
+int max3232_baud = 38400;
+int max3232_timeout = 100;
 
 // amplifier type
 const char* amplifier = "xpa125b";
@@ -61,11 +78,11 @@ int tx_pin = D3;
 int yaesu_band_pin = A0;
 // serial adapters - use either an hc-05 for the IC-705 or a MAX3232 for Elecraft radio/Hardrock-50 amp - both share the same pins
 // bluetooth - tx pin overlaps with SunSDR/Yaesu so you can either use bluetooth (for Icom-705) or SunSDR/Yaesu
-int hc05_rx_pin = D4;
-int hc05_tx_pin = D5;
+int hc05_txd_pin = D4;
+int hc05_rxd_pin = D5;
 // MAX3232 - tx pin overlaps with SunSDR/Yaesu so you can either use MAX3232 (for Elecraft radio / Hardrock-50 amp) or SunSDR/Yaesu
-int max3232_rx_pin = D4;
-int max3232_tx_pin = D5;
+int max3232_txd_pin = D4;
+int max3232_rxd_pin = D5;
 // SunSDR EXT CTRL and Yaesu Band Data - requires level converter 5VDC to 3V3
 // X8 on the SunSDR and 'TX GND' on Yaesu (LINEAR mode) is PTT (no need for level converter)
 int band_data_1 = D5;
@@ -136,8 +153,8 @@ boolean Rflag=false;
 int r_len;
 char ser_buffer[32];
 
-SoftwareSerial BTserial(hc05_rx_pin, hc05_tx_pin);
-SoftwareSerial MAX3232(max3232_rx_pin, max3232_tx_pin);
+SoftwareSerial BTserial(hc05_txd_pin, hc05_rxd_pin);
+SoftwareSerial MAX3232(max3232_txd_pin, max3232_rxd_pin);
 
 String getValue(String data, char separator, int index)
 {
@@ -164,19 +181,43 @@ String getRemoteIP() {
 }
 
 char* MAX3232serialRead(char term_char) {
-  const unsigned int MAX_MESSAGE_LENGTH = 12;
-  while (MAX3232.available() >0) {
-   static char message[MAX_MESSAGE_LENGTH];
+ const unsigned int MAX_MESSAGE_LENGTH = 20;
+ static char message[MAX_MESSAGE_LENGTH];
+ for( int i = 0; i < MAX_MESSAGE_LENGTH;  ++i ) {
+    message[i] = '\0';
+ }
+ int i = 0;
+ while (MAX3232.available() == 0) {
+    if (i = max3232_timeout) { 
+      if (max3232_debug == true) {
+        serialPrintln("Serial timeout");
+      }
+      return("");
+    }
+    i++;
+    delay(1);
+ }
+ while (MAX3232.available() >0) {
    static unsigned int message_pos = 0;
-   char inByte = Serial.read();
+   char inByte = MAX3232.read();
    if ( inByte != term_char && (message_pos < MAX_MESSAGE_LENGTH - 1) ) {
      message[message_pos] = inByte;
      message_pos++;
    } else {
+    // gobble up the rest
+    while (MAX3232.available() >0) {
+      MAX3232.read();
+    }
     message_pos = 0;
-    return (message);
+    if(isAlpha(message[0])) {
+      if (max3232_debug == true) {
+        serialPrint(message);
+        serialPrintln("");
+      }
+      return (message);
+    }
    }
-  }
+ }
 }
 
 int get_elecraft_value(char* message) {
@@ -198,10 +239,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void webServer(bool value) {
   if (value == true) {
     server.begin();
-    Serial.println("HTTP server started");
+    serialPrintln("HTTP server started");
   } else {
     server.stop();
-    Serial.println("HTTP server stopped");
+    serialPrintln("HTTP server stopped");
   }
 }
 
@@ -212,9 +253,9 @@ void mqttConnect() {
   // pubsubClient.connected condition here prevents a crash which can happen if already connected
   if (((mqtt_enabled == true) && (!pubsubClient.connected()) && (WiFi.status() == WL_CONNECTED))) {
     delay(100); // stops it trying to reconnect as fast as the loop can go
-    Serial.println("Attempting MQTT connection");
+    serialPrintln("Attempting MQTT connection");
     if (pubsubClient.connect("xpa125b", mqttuser, mqttpass)) {
-      Serial.println("MQTT connected"); 
+      serialPrintln("MQTT connected"); 
       pubsubClient.subscribe("xpa125b/#");
     }
   }
@@ -236,32 +277,32 @@ void handleNotFound() {
 }
 
 bool setupBandData() {
-  if (hl_05_enabled == false) {
+  if (hc_05_enabled == false) {
     pinMode(band_data_1,INPUT_PULLUP);
     pinMode(band_data_1,INPUT_PULLUP);
     pinMode(band_data_1,INPUT_PULLUP);
     pinMode(band_data_1,INPUT_PULLUP);
-    Serial.println("Band data pins configured");
+    serialPrintln("Band data pins configured");
     return true;
   } else {
-    Serial.println("Cannot setup band data when bluetooth is snabled as the TX pin overlaps");
+    serialPrintln("Cannot setup band data when bluetooth is snabled as the TX pin overlaps");
     return false;
   }
 }
 
 bool setupMAX3232() {
-  if (hl_05_enabled == false) {
+  if (hc_05_enabled == false) {
     if (max3232_enabled == true) {
       MAX3232.begin(max3232_baud);
-      Serial.print("MAX3232 configured at baudrate ");
-      Serial.println(max3232_baud);
+      serialPrint("MAX3232 configured at baudrate ");
+      serialPrintln(max3232_baud);
       return true;
     } else {
-      Serial.println("You must set max3232_enabled to true");
+      serialPrintln("You must set max3232_enabled to true");
       return false;
     }
   } else {
-    Serial.println("Cannot setup MAX3232 when bluetooth is enabled as the TX pin overlaps");
+    serialPrintln("Cannot setup MAX3232 when bluetooth is enabled as the TX pin overlaps");
     return false;
   }
 }
@@ -269,20 +310,20 @@ bool setupMAX3232() {
 bool setupAmplifier(String value) {
   if (value == "xpa125b") {
     amplifier = "xpa125b";
-    Serial.println("Amplifier set to xpa125b");
+    serialPrintln("Amplifier set to xpa125b");
     return true;
   } else if (value == "minipa50") {
     amplifier = "xpa125b";
-    Serial.println("Amplifier set to xpa125b");
+    serialPrintln("Amplifier set to xpa125b");
     return true;
   } else if (value == "hardrock50") {
     if (setupMAX3232()) {
       amplifier = "hardrock50";
-      Serial.println("Amplifier set to hardrock50");
+      serialPrintln("Amplifier set to hardrock50");
       return true;
     } else {
       amplifier = "none";
-      Serial.print("Failed to set amplifier set to hardrock50");
+      serialPrint("Failed to set amplifier set to hardrock50");
       return false;
     }
   }
@@ -346,28 +387,28 @@ void setRigctlAddress(String address) {
   rigctl_address = address;
   rigctl_address_set = true;
   rigctl_ipaddress.fromString(address);
-  Serial.print("rigctl_address ");
-  Serial.println(rigctl_address);
+  serialPrint("rigctl_address ");
+  serialPrintln(rigctl_address);
 }
 
 void setRigctlPort(String port) {
   rigctl_port = port;
   rigctl_port_set = true;
   rigctl_portnumber = port.toInt();
-  Serial.print("rigctl_port ");
-  Serial.println(rigctl_port);
+  serialPrint("rigctl_port ");
+  serialPrintln(rigctl_port);
 }
 
 bool testRigctlServer() {
   if (((wifi_enabled == true) && (rigctl_address_set) && (rigctl_port_set))) {
    if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
     if ((sendRigctlCommand("t") == "0") || (sendRigctlCommand("t") == "1")) {
-      Serial.print("connection to rigctl server succeeded ");
-      Serial.println(rigctl_address + ":" + rigctl_port);
+      serialPrint("connection to rigctl server succeeded ");
+      serialPrintln(rigctl_address + ":" + rigctl_port);
       return true;
     } else {
-      Serial.print("connection to rigctl succeeded but PTT status failed to return ");
-      Serial.println(rigctl_address + ":" + rigctl_port);
+      serialPrint("connection to rigctl succeeded but PTT status failed to return ");
+      serialPrintln(rigctl_address + ":" + rigctl_port);
       if (mode == "rigctl") {
         setMode("none");
       }
@@ -375,33 +416,33 @@ bool testRigctlServer() {
     }
     rigctlClient.stop();
    } else {
-    Serial.print("connection to rigctl server failed ");
-    Serial.println(rigctl_address + ":" + rigctl_port);
+    serialPrint("connection to rigctl server failed ");
+    serialPrintln(rigctl_address + ":" + rigctl_port);
     if (mode == "rigctl") {
       setMode("none");
     }
     return false;
    }
   } else {
-    Serial.println("rigctl server not set");
+    serialPrintln("rigctl server not set");
     return false;
   }
 }
 
 bool connectRigctl() {
   if (((wifi_enabled == true) &&  (rigctl_address_set) && (rigctl_port_set))) {
-    //Serial.println("connecting to rigctl");
+    //serialPrintln("connecting to rigctl");
     if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
       if (rigctl_debug) {
-        Serial.println("rigctl connection success");
+        serialPrintln("rigctl connection success");
       }
       return true;
     } else {
-      Serial.println("rigctl connection failed");
+      serialPrintln("rigctl connection failed");
       return false;
     }
   } else {
-    Serial.println("wifi disabled or rigctl address and port not set");
+    serialPrintln("wifi disabled or rigctl address and port not set");
     return false;
   }
 }
@@ -421,7 +462,7 @@ String sendRigctlCommand(char* command) {
           // iteration, causing e.g. the ptt status to be concatenated with the frequency
           // set rigctl_debug to true if rigctl appears to be doing nothing yet the connection test claims success
           if (rigctl_debug) {
-            Serial.println("rigctl timed out"); 
+            serialPrintln("rigctl timed out"); 
           }
           rigctlClient.stop();
           return("error");
@@ -443,7 +484,7 @@ String sendRigctlCommand(char* command) {
         int length = response.length();
         response.remove(length - 1, 1);
         delay(rigctl_delay);
-        //Serial.println(response);
+        //serialPrintln(response);
         return(response);
     } else {
       return "error";
@@ -451,8 +492,8 @@ String sendRigctlCommand(char* command) {
 }
 
 void setRigctlFreq(String frequency) {
-     Serial.print("rigctlfreq: ");
-     Serial.println(frequency);
+     serialPrint("rigctlfreq: ");
+     serialPrintln(frequency);
      String cmd  = "F "; cmd += (frequency);
      char cmdChar[20];
      cmd.toCharArray(cmdChar, 20);
@@ -470,8 +511,8 @@ void setRigMode(String rigmode) {
        char modeChar[20];
        current_rig_mode.toCharArray(modeChar, 20);
        if (pubsubClient.connected()) pubsubClient.publish("xpa125b/rigmode", modeChar, true);
-       Serial.print("rigmode ");
-       Serial.println(current_rig_mode);
+       serialPrint("rigmode ");
+       serialPrintln(current_rig_mode);
        previous_rig_mode = rigmode;
     }
 }
@@ -497,8 +538,8 @@ void setRigctlPtt(String ptt) {
   if ((ptt != "0") && (tx_block_timer != 0)) {
      return;
   } else {
-     Serial.print("rigctlptt: ");
-     Serial.println(ptt);
+     serialPrint("rigctlptt: ");
+     serialPrintln(ptt);
      String cmd  = "T "; cmd += (ptt);
      char cmdChar[5];
      cmd.toCharArray(cmdChar, 5);
@@ -740,8 +781,8 @@ void setMode(String value) {
     //previous_frequency = "0";
     char charMode[9];
     mode.toCharArray(charMode, 9);
-    Serial.print("mode ");
-    Serial.println(mode);
+    serialPrint("mode ");
+    serialPrintln(mode);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/mode", charMode, true);
     if ((mode == "mqtt") && (mqtt_enabled == 0)) {
       setMQTT("enable");
@@ -859,8 +900,8 @@ void setBand(String band) {
     }
     current_band = bandInt;
     if ( current_band != previous_band ) {
-      Serial.print("band ");
-      Serial.println(bandChar);
+      serialPrint("band ");
+      serialPrintln(bandChar);
       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/band", bandChar, true);
     }
     previous_band = bandInt; 
@@ -926,8 +967,8 @@ void setFreq(String freq) {
    int freqInt = frequency.toInt();
    freq.toCharArray(charFreq, 10);
    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/frequency", charFreq, false);
-   Serial.print("frequency ");
-   Serial.println(frequency);
+   serialPrint("frequency ");
+   serialPrintln(frequency);
    if (regexMatch(charFreq, "^1......$")) {
     setBand("160");
    } else if (regexMatch(charFreq, "^3......$")) {
@@ -955,8 +996,8 @@ void setFreq(String freq) {
    } else if (regexMatch(charFreq, "^5.......$")) {
     setBand("6");
    } else {
-    Serial.print("No matching band found for ");
-    Serial.println(frequency);
+    serialPrint("No matching band found for ");
+    serialPrintln(frequency);
    }
    previous_frequency = frequency;
   }
@@ -968,7 +1009,7 @@ void setState(String state) {
     current_state = 0;
     curState = "rx";
     if (current_state != previous_state) {
-      Serial.println("state rx");
+      serialPrintln("state rx");
       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "rx");
     }
     previous_state = 0;
@@ -979,7 +1020,7 @@ void setState(String state) {
     current_state = 1;
     curState = "tx";
     if (current_state != previous_state) {
-      Serial.println("state tx");
+      serialPrintln("state tx");
       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
     }
     previous_state = 1;
@@ -990,11 +1031,11 @@ void setMQTT(String value) {
   if (value == "enable") {
     mqtt_enabled = true;
     mqttConnect;
-    Serial.println("MQTT enabled");
+    serialPrintln("MQTT enabled");
   } else if (value == "disable") {
     mqtt_enabled = false;
     pubsubClient.disconnect();
-    Serial.println("MQTT disabled");
+    serialPrintln("MQTT disabled");
   }
 }
 
@@ -1026,44 +1067,128 @@ void wifi(String state) {
     int count = 0;
     while ((WiFi.status() != WL_CONNECTED) && (count < 20)) {
       delay(500);
-      Serial.print(".");
+      serialPrint(".");
       count++;
     }
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("");
-      Serial.print("Connected to ");
-      Serial.println(ssid);
-      Serial.print("RSSI ");
-      Serial.println(WiFi.RSSI());
-      Serial.print("IP address: ");
-      Serial.println(WiFi.localIP());
-      Serial.print("DNS address: ");
-      Serial.println(WiFi.dnsIP());
-      Serial.print("Gateway: ");
-      Serial.println(WiFi.gatewayIP());
-      Serial.print("MAC address: ");
-      Serial.println(WiFi.macAddress());
+      serialPrintln("");
+      serialPrint("Connected to ");
+      serialPrintln(ssid);
+      serialPrint("RSSI ");
+      serialPrintln(WiFi.RSSI());
+      serialPrint("IP address: ");
+      serialPrintln(WiFi.localIP());
+      serialPrint("DNS address: ");
+      serialPrintln(WiFi.dnsIP());
+      serialPrint("Gateway: ");
+      serialPrintln(WiFi.gatewayIP());
+      serialPrint("MAC address: ");
+      serialPrintln(WiFi.macAddress());
       if (MDNS.begin("xpa125b")) {
-        Serial.println("MDNS responder started as xpa125b[.local]");
+        serialPrintln("MDNS responder started as xpa125b[.local]");
       }
       mqttConnect();
     } else {
-      Serial.println("\nWiFi failed to connect");;
+      serialPrintln("\nWiFi failed to connect");;
     }
   } else if ((state == "disable") && (WiFi.status() != WL_DISCONNECTED)) {
     WiFi.mode(WIFI_OFF);
-    Serial.println("WiFi disabled");
+    serialPrintln("WiFi disabled");
   }
 }
 
-void setup(void) {
-  Serial.begin(115200);
-  delay(500); // computer serial port takes time to be available after reset
-  Serial.println("XPA125B controller started");
-
-  if (hl_05_enabled == true) {
-    BTserial.begin(9600);
+void serialPrint(String message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.print(message);
+  } else {
+    serialPrint(message);
   }
+}
+void serialPrintln(String message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.println(message);
+  } else {
+    serialPrintln(message);
+  }
+}
+void serialPrint(char* message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.print(message);
+  } else {
+    serialPrint(message);
+  }
+}
+void serialPrintln(char* message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.println(message);
+  } else {
+    serialPrintln(message);
+  }
+}
+void serialPrint(int message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.print(message);
+  } else {
+    serialPrint(message);
+  }
+}
+void serialPrintln(int message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.println(message);
+  } else {
+    serialPrintln(message);
+  }
+}
+
+void processSerial(String serialValue) {
+   serialValue.trim();
+   String command = getValue(serialValue,' ',0);
+   String value = getValue(serialValue,' ',1);
+   if (command == "setmode") {
+     setMode(value);
+   } else if ((command == "setband") && (mode == "serial")) {
+     setBand(value);
+   } else if ((command == "setfreq") && (mode == "serial")) {
+     setFreq(value);
+   } else if ((command == "setrigmode") && (mode == "serial")) {
+     setRigMode(value);
+   } else if ((command == "setrigctlfreq") && (mode == "rigctl")) {
+     setRigctlFreq(value);
+   } else if ((command == "setrigctlmode") && (mode == "rigctl")) {
+     setRigctlMode(value);
+   } else if ((command == "setrigctlptt") && (mode == "rigctl")) {
+     setRigctlPtt(value);
+   } else if (((command == "setstate") && (mode == "serial") && (hybrid == false))) {
+     setState(value);
+   } else if (command == "setmqtt") {
+     setMQTT(value);
+   } else if (command == "setrigctl") {
+    setRigctlAddress(getValue(serialValue,' ',1));
+    setRigctlPort(getValue(serialValue,' ',2));
+    serialPrintln("rigctl_server " + getRigctlServer());
+   } else if (command == "serialonly") {
+     if (value == "true") {
+      serialonly = true;
+      setMode("serial");
+      wifi_enabled = false;
+     } else if (value == "false") {
+      serialonly = false;
+      wifi_enabled = true;
+     }
+   } 
+}
+
+void setup(void) {
+
+  if ((use_bluetooth_serial == true) && (hc_05_enabled = true)) {
+    BTserial.begin(hc_05_baud);
+    Serial.println("Using bluetooth for serial - check there instead");
+  }
+
+  Serial.begin(serial_baud);
+  
+  delay(500); // computer serial port takes time to be available after reset
+  serialPrintln("XPA125B controller started");
   
   if (wifi_enabled == true) {
     wifi("enable");
@@ -1071,10 +1196,15 @@ void setup(void) {
 
   setupAmplifier(amplifier);
 
+  if (hc_05_enabled == true && use_bluetooth_serial == false) {
+    BTserial.begin(hc_05_baud);
+    serialPrintln("HC-05 enabled");
+  }
+
   if (hybrid == true) {
-    Serial.println("Hybrid mode is enabled");
+    serialPrintln("Hybrid mode is enabled");
   } else {
-    Serial.println("Hybrid mode is disabled");
+    serialPrintln("Hybrid mode is disabled");
   }
   
   // set to 160m and 0Hz by default
@@ -1272,12 +1402,12 @@ void setup(void) {
 
   webServer(true);
   setMode(default_mode);
-  Serial.print("band ");
-  Serial.println(current_band);
-  Serial.print("frequency ");
-  Serial.println(frequency);
-  Serial.print("state ");
-  Serial.println(current_state);
+  serialPrint("band ");
+  serialPrintln(current_band);
+  serialPrint("frequency ");
+  serialPrintln(frequency);
+  serialPrint("state ");
+  serialPrintln(current_state);
 }
 
 void loop(void) {
@@ -1294,44 +1424,29 @@ void loop(void) {
   mqttConnect();
   pubsubClient.loop();
 
- if (Serial.available()) {
-   serialValue = Serial.readStringUntil(serialEOL);
-   String command = getValue(serialValue,' ',0);
-   String value = getValue(serialValue,' ',1);
-   if (command == "setmode") {
-     setMode(value);
-   } else if ((command == "setband") && (mode == "serial")) {
-     setBand(value);
-   } else if ((command == "setfreq") && (mode == "serial")) {
-     setFreq(value);
-   } else if ((command == "setrigmode") && (mode == "serial")) {
-     setRigMode(value);
-   } else if ((command == "setrigctlfreq") && (mode == "rigctl")) {
-     setRigctlFreq(value);
-   } else if ((command == "setrigctlmode") && (mode == "rigctl")) {
-     setRigctlMode(value);
-   } else if ((command == "setrigctlptt") && (mode == "rigctl")) {
-     setRigctlPtt(value);
-   } else if (((command == "setstate") && (mode == "serial") && (hybrid == false))) {
-     setState(value);
-   } else if (command == "setmqtt") {
-     setMQTT(value);
-   } else if (command == "setrigctl") {
-    setRigctlAddress(getValue(serialValue,' ',1));
-    setRigctlPort(getValue(serialValue,' ',2));
-    Serial.println("rigctl_server " + getRigctlServer());
-   } else if (command == "serialonly") {
-     if (value == "true") {
-      serialonly = true;
-      setMode("serial");
-      wifi_enabled = false;
-     } else if (value == "false") {
-      serialonly = false;
-      wifi_enabled = true;
-     }
-   } 
- }  
+ 
 
+  if (hc_05_program == true) {
+   while (Serial.available()) {
+    int value = Serial.read();
+    BTserial.write(value);
+   }
+  }
+         
+  if (hc_05_program == false) {
+   if (use_bluetooth_serial == true) {
+     while (BTserial.available()) {
+       serialValue = BTserial.readStringUntil(serialEOL);
+       processSerial(serialValue);
+      }
+   } else {
+      while (Serial.available()) {
+       serialValue = Serial.readStringUntil(serialEOL);
+       processSerial(serialValue);
+      }
+   }
+  }
+  
  if ((hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr") && (mode != "none")) {
   delay(10); // digital pin needs time to settle between reads
   rx_state = digitalRead(tx_pin);
@@ -1358,7 +1473,7 @@ void loop(void) {
 
  // mqtt subscribed messages
  if(Rflag) {
-   //Serial.println("MQTT message recieved");
+   //serialPrintln("MQTT message recieved");
    // reset Rflag
    Rflag=false;
    // convert from char array to String
@@ -1400,8 +1515,8 @@ void loop(void) {
     String strSeconds = String(tx_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txtime", charSeconds, false);
-    Serial.print("txtime ");
-    Serial.println(charSeconds);
+    serialPrint("txtime ");
+    serialPrintln(charSeconds);
     tx_previous_seconds=second;
   }
  } else {
@@ -1415,7 +1530,7 @@ void loop(void) {
  }
 
  if ( tx_seconds >= tx_limit ) {
-  Serial.println("txblocktimer start");
+  serialPrintln("txblocktimer start");
   setState("rx");
   if (mode == "rigctl") {
     setRigctlPtt("0");
@@ -1436,10 +1551,10 @@ void loop(void) {
     String strSeconds = String(tx_block_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txblocktimer", charSeconds, false);
-    Serial.print("txblocktimer ");
-    Serial.println(charSeconds);
+    serialPrint("txblocktimer ");
+    serialPrintln(charSeconds);
     if ( tx_block_timer == 0 ) {
-    Serial.println("txblocktimer end");
+    serialPrintln("txblocktimer end");
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txblocktimer", "0", false);
     } 
    }
@@ -1477,12 +1592,18 @@ void loop(void) {
   }
  } 
 
+  if (hc_05_program == true) {
+    while (BTserial.available()) {
+       //String BTserial = Serial.readStringUntil(serialEOL);
+       int value = BTserial.read();
+       Serial.write(value);
+       //serialPrint(BTserial);
+    }
+  }
+
  // Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back) and connect the controller ('XPA128B') in the Bluetooth menu. Security code: 1234.
- // The BT name of the HC-05 is set with 'AT+NAME=XPA128B' and password with 'AT+PSWD="12345"'
- // There is a button near the EN pin of HC-05 module. Press that button, apply power and then release. You are now in AT command mode.
- // Continuous blinking of LED indicates it is in data mode and delayed blinking (2 seconds) indicates the module is in AT command mode.
- if ((mode == "icom") && (hl_05_enabled == true)) {
-  if (BTserial.available())
+ if (mode == "icom" && hc_05_enabled == true && hc_05_program == false) {
+  while (BTserial.available())
   {  
       int bt_c = BTserial.read() & 0x00ff;
       //Serial.write(bt_c);
@@ -1585,12 +1706,12 @@ void loop(void) {
 
  if ((mode == "elecraft") && (serialonly == false)) {
   
-  MAX3232.print("FA;"); // request VFO A frequency
+  MAX3232.println("FA;"); // request VFO A frequency
   elecraft_response = MAX3232serialRead(';');
   elecraft_value = get_elecraft_value(elecraft_response);
   setFreq(String(elecraft_value));
 
-  MAX3232.print("MD;"); // request VFO A mode
+  MAX3232.println("MD;"); // request VFO A mode
   String response_mode;
   elecraft_response = MAX3232serialRead(';');
   elecraft_value = get_elecraft_value(elecraft_response);
@@ -1627,13 +1748,15 @@ void loop(void) {
   }
   setRigMode(response_mode);
 
-  MAX3232.print("TQ;"); // request transmit state
-  elecraft_response = MAX3232serialRead(';');
-  elecraft_value = get_elecraft_value(elecraft_response);
-  if ( elecraft_value == 1 ) {
-    setState("tx");
-  } else {
-    setState("rx");
+  if (hybrid == false) {
+    MAX3232.println("TQ;"); // request transmit state
+    elecraft_response = MAX3232serialRead(';');
+    elecraft_value = get_elecraft_value(elecraft_response);
+    if ( elecraft_value == 1 ) {
+      setState("tx");
+    } else {
+      setState("rx");
+    }
+   }
   }
- }
 }
