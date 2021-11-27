@@ -282,7 +282,7 @@ Now all frequency, mode and PTT state changes will be passed to the controller a
   
 To reduce PTT latency you can set `hybrid` to `true` in the config. This will use the analog control cable instead of rigctl for switching rx/tx.
 
-## Bluetooth Serial Mode
+## Bluetooth Serial Console
 
 You can also use the HC-05 for sending serial commands and reading the output. We achieve this by redirecting all serial operations from the built in serial port to the HC-05. This is particularly useful if the controller is not plugged into the computer you want to use serial with (but in range of Bluetooth).
 
@@ -291,7 +291,7 @@ Note: You can't use this with an Icom 705 (unless via rigctl) as the radio uses 
 The way this works is the HC-05 appears as a serial port once paired over Bluetooth. In Linux this is achieved using `rfcomm` which creates a pseudo serial device. This is transparent to the software accessing the device so you can do anything you usually can with serial devices. To use this feature with Linux:
 
 1. Set `use_bluetooth_serial` to `true` and `hc_05_enabled` to `true` in the config
-2. Run `hcitool scan` - this should find the controller as something like `98:D3:65:F1:3A:C0	XPA125B`
+2. Run `sudo hcitool scan` - this should find the controller as something like `98:D3:65:F1:3A:C0	XPA125B`
 3. Run `sudo bluetoothctl` - the CLI will start
 4. Run `trust 98:D3:65:F1:3A:C0` - use the MAC found with the previous scan
 5. Run `pair 98:D3:65:F1:3A:C0` - enter the PIN you chose when configuring the HC-05
