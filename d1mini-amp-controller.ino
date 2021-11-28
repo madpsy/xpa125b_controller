@@ -23,8 +23,11 @@ String default_mode = "none";
 // icom interface - either hc_05 or max3232
 char* icom_interface = "hc_05";
 
-// always use analog control cable for PTT
+// always use analog control for PTT
 bool hybrid = false;
+
+// milliseconds of debounce for analog PTT
+int debounceDelay = 0;
 
 // enable bluetooth (required for Icom).
 // To program the HC-05, set hc_05_program to true and hold the button on the module for 2 seconds when applying power
@@ -116,6 +119,7 @@ unsigned long bt_kHz = 0;
 unsigned long bt_MHz = 0;
 unsigned long bt_Hz = 0;
 String bt_freq;
+unsigned long lastDebounceTime = 0;
 unsigned long current_tx_millis = 0;
 unsigned long previous_tx_millis = 0;
 unsigned long current_block_millis = 0;
@@ -1026,26 +1030,30 @@ void setFreq(String freq) {
 }
 
 void setState(String state) {
-  if ( state == "rx" ) {
-    digitalWrite(ptt_pin, LOW);
-    current_state = 0;
-    curState = "rx";
-    if (current_state != previous_state) {
-      serialPrintln("state rx");
-      if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "rx");
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if ( state == "rx" ) {
+      current_state = 0;
+      curState = "rx";
+      if (current_state != previous_state) {
+       lastDebounceTime = millis();
+       digitalWrite(ptt_pin, LOW);
+       serialPrintln("state rx");
+       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "rx");
+      }
+      previous_state = 0;
+      tx_timer = 0;
+      tx_seconds = 0;
+    } else if (( state == "tx" ) && ( tx_block_timer == 0 )) {
+     current_state = 1;
+     curState = "tx";
+     if (current_state != previous_state) {
+       lastDebounceTime = millis();
+       digitalWrite(ptt_pin, HIGH);
+       serialPrintln("state tx");
+       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
+     }
+     previous_state = 1;
     }
-    previous_state = 0;
-    tx_timer = 0;
-    tx_seconds = 0;
-  } else if (( state == "tx" ) && ( tx_block_timer == 0 )) {
-    digitalWrite(ptt_pin, HIGH);
-    current_state = 1;
-    curState = "tx";
-    if (current_state != previous_state) {
-      serialPrintln("state tx");
-      if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
-    }
-    previous_state = 1;
   }
 }
 
