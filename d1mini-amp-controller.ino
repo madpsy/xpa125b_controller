@@ -406,7 +406,7 @@ bool testRigctlServer() {
   if (((wifi_enabled == true) && (rigctl_address_set) && (rigctl_port_set))) {
    if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
     if ((sendRigctlCommand("t") == "0") || (sendRigctlCommand("t") == "1")) {
-      serialPrint("connection to rigctl server succeeded ");
+      serialPrint("Connection to rigctl server succeeded ");
       serialPrintln(rigctl_address + ":" + rigctl_port);
       return true;
     } else {
@@ -1104,42 +1104,84 @@ void serialPrint(String message) {
   if (use_bluetooth_serial == true) {
     BTserial.print(message);
   } else {
-    serialPrint(message);
+    Serial.print(message);
   }
 }
 void serialPrintln(String message) {
   if (use_bluetooth_serial == true) {
     BTserial.println(message);
   } else {
-    serialPrintln(message);
+    Serial.println(message);
   }
 }
 void serialPrint(char* message) {
   if (use_bluetooth_serial == true) {
     BTserial.print(message);
   } else {
-    serialPrint(message);
+    Serial.print(message);
   }
 }
 void serialPrintln(char* message) {
   if (use_bluetooth_serial == true) {
     BTserial.println(message);
   } else {
-    serialPrintln(message);
+    Serial.println(message);
   }
 }
 void serialPrint(int message) {
   if (use_bluetooth_serial == true) {
     BTserial.print(message);
   } else {
-    serialPrint(message);
+    Serial.print(message);
   }
 }
 void serialPrintln(int message) {
   if (use_bluetooth_serial == true) {
     BTserial.println(message);
   } else {
-    serialPrintln(message);
+    Serial.println(message);
+  }
+}
+void serialPrint(bool message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.print(message);
+  } else {
+    Serial.print(message);
+  }
+}
+void serialPrintln(bool message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.println(message);
+  } else {
+    Serial.println(message);
+  }
+}
+void serialPrint(byte message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.print(message);
+  } else {
+    Serial.print(message);
+  }
+}
+void serialPrintln(byte message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.println(message);
+  } else {
+    Serial.println(message);
+  }
+}
+void serialPrint(IPAddress message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.print(message);
+  } else {
+    Serial.print(message);
+  }
+}
+void serialPrintln(IPAddress message) {
+  if (use_bluetooth_serial == true) {
+    BTserial.println(message);
+  } else {
+    Serial.println(message);
   }
 }
 
@@ -1605,8 +1647,8 @@ void loop(void) {
   }
 
  // Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back) and connect the controller ('XPA128B') in the Bluetooth menu.
- if (mode == "icom") {
-  if (icom_interface == "hc_05" && hc_05_program == false) {
+ if (mode == "icom" && serialonly == false) {
+  if (icom_interface == "hc_05" && hc_05_enabled == true && hc_05_program == false) {
     while (BTserial.available()) {  
         int bt_c = BTserial.read() & 0x00ff;
  
