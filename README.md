@@ -99,16 +99,16 @@ When using `yaesu` (except the 817/818) or `SunSDR` as the radio you need to con
 For Yaesu:
 
 + `BAND-A` pin of the radio to `D5` of the D1 Mini (via the shifter)
-+ `BAND-B` pin of the radio to `D5` of the D1 Mini (via the shifter)
-+ `BAND-C` pin of the radio to `D5` of the D1 Mini (via the shifter)
-+ `BAND-D` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `BAND-B` pin of the radio to `D6` of the D1 Mini (via the shifter)
++ `BAND-C` pin of the radio to `D7` of the D1 Mini (via the shifter)
++ `BAND-D` pin of the radio to `D8` of the D1 Mini (via the shifter)
 
 For SunSDR:
 
 + `X3` pin of the radio to `D5` of the D1 Mini (via the shifter)
-+ `X4` pin of the radio to `D5` of the D1 Mini (via the shifter)
-+ `X5` pin of the radio to `D5` of the D1 Mini (via the shifter)
-+ `X6` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `X4` pin of the radio to `D6` of the D1 Mini (via the shifter)
++ `X5` pin of the radio to `D7` of the D1 Mini (via the shifter)
++ `X6` pin of the radio to `D8` of the D1 Mini (via the shifter)
 
 # Bluetooth module (HC-05)
 
