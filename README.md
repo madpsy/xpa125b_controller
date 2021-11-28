@@ -11,7 +11,7 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 # Supported radios:
 
 + Yaesu (including 817/818)
-+ Icom (via Bluetooth, such as the IC-705)
++ Icom (Bluetooth such as the IC-705 or RS232)
 + SunSDR (EXT CTRL port)
 + Elecraft (KX2 / KX3)
 + SparkSDR (Hermes-Lite 2)
