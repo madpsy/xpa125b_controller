@@ -443,7 +443,7 @@ A simple web interface is available on port 80 which allows access to basic func
 # Valid serial commands (115200 baud):
 
 + serialonly [true|false] (disables every other mode and wifi entirely)
-+ setmode [yaesu|yaesu817|icom|elecraft|serial|http|mqtt|rigctl|none]
++ setmode [yaesu|yaesu817|icom|elecraft|hermes|serial|http|mqtt|rigctl|none]
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
 + setfreq [frequency in Hz]
@@ -458,7 +458,7 @@ Note: There are no commands to get current states over serial. The reason being 
 
 # Valid HTTP POST paths:
 
-+ /setmode mode=[yaesu|yaesu817|icom|elecraft|serial|http|mqtt|rigctl|none]
++ /setmode mode=[yaesu|yaesu817|icom|elecraft|hermes|serial|http|mqtt|rigctl|none]
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
