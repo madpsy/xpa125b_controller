@@ -176,6 +176,25 @@ String getValue(String data, char separator, int index)
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
+void ICACHE_RAM_ATTR handleTX(void) {
+  if ((hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr") && (mode != "none")) {
+  rx_state = digitalRead(tx_pin);
+  if ((rx_state == LOW) && (serialonly == false)) {
+      current_yaesu_rx = true;
+      if (current_yaesu_rx != previous_yaesu_rx) {
+        setState("tx");
+        previous_yaesu_rx = true;
+      }
+  } else if ((rx_state == HIGH) && (serialonly == false)) {
+     current_yaesu_rx = false;
+     if (current_yaesu_rx != previous_yaesu_rx) {
+       setState("rx");
+       previous_yaesu_rx = false;
+     }
+   }
+ }
+}
+
 String getRemoteIP() {
   // remote_ip variable is of type 'IPAddress' and can be used elsewhere if needed
   remote_ip = server.client().remoteIP();
@@ -1279,6 +1298,8 @@ void setup(void) {
     setRigctlPort(rigctl_default_port);
   }
 
+  attachInterrupt(digitalPinToInterrupt(tx_pin), handleTX, CHANGE);
+
   server.on("/", handleRoot);
 
   server.on("/status", getStatus);
@@ -1491,24 +1512,8 @@ void loop(void) {
       }
    }
   }
+
   
- if ((hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr") && (mode != "none")) {
-  delay(10); // digital pin needs time to settle between reads
-  rx_state = digitalRead(tx_pin);
-  if ((rx_state == LOW) && (serialonly == false)) {
-      current_yaesu_rx = true;
-      if (current_yaesu_rx != previous_yaesu_rx) {
-        setState("tx");
-        previous_yaesu_rx = true;
-      }
-  } else if ((rx_state == HIGH) && (serialonly == false)) {
-     current_yaesu_rx = false;
-     if (current_yaesu_rx != previous_yaesu_rx) {
-       setState("rx");
-       previous_yaesu_rx = false;
-     }
-   }
- }
 
  if ((mode == "yaesu817") && (serialonly == false)) {
     delay(10); // ADC needs time to settle between reads
