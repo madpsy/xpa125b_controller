@@ -86,7 +86,7 @@ Connect one end of the resistor to the `3V3` pin on the D1 mini and the other en
 
 There is built in debounce logic which you can enable if your radio uses a relay on its TX enabled output or you are using a switch like the MFJ-1708. This isn't usually neccessary but if you notice the controller state oscillating when you TX you probably want to set this to some value of milliseconds. In the controller configuration:
 
-1. Set `debounceDelay` to some value > `0`.
+1. Set `debounceDelay` to some value > `0`
 
 I've found `10` milliseconds works well for me when a relay is involved.
 
