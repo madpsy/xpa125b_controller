@@ -88,7 +88,7 @@ There is built in debounce logic which you can enable if your radio uses a relay
 
 1. Set `debounceDelay` to some value > `0`
 
-I've found `10` milliseconds works well for me when a relay is involved.
+If you set this to a value and notice PTT no longer works try increasing the value until it does. I've found `10` milliseconds works well but you may need to experiment.
 
 ## RC Filter
 
