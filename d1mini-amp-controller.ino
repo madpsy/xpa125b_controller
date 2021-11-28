@@ -20,6 +20,9 @@ const char* mqttpass = "";
 // default mode
 String default_mode = "none";
 
+// icom interface - either hc_05 or max3232
+char* icom_interface = "hc_05";
+
 // always use analog control cable for PTT
 bool hybrid = false;
 
@@ -851,17 +854,17 @@ void setBand(String band) {
         hr_band = 5;
         break;
       case 17:
-        pwm_value = 210;
+        pwm_value = 180;
         yaesu_pwm_value = 200;
         hr_band = 4;
         break;
       case 15:
-        pwm_value = 230;
+        pwm_value = 210;
         yaesu_pwm_value = 210;
         hr_band = 3;
         break;
       case 12:
-        pwm_value = 255;
+        pwm_value = 230;
         yaesu_pwm_value = 230;
         hr_band = 2;
         break;
@@ -1601,27 +1604,43 @@ void loop(void) {
     }
   }
 
- // Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back) and connect the controller ('XPA128B') in the Bluetooth menu. Security code: 1234.
- if (mode == "icom" && hc_05_enabled == true && hc_05_program == false) {
-  while (BTserial.available())
-  {  
-      int bt_c = BTserial.read() & 0x00ff;
-      //Serial.write(bt_c);
-      //sprintf(ser_buffer, "%u\n", bt_c);
-      //Serial.write(ser_buffer);
+ // Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back) and connect the controller ('XPA128B') in the Bluetooth menu.
+ if (mode == "icom") {
+  if (icom_interface == "hc_05" && hc_05_program == false) {
+    while (BTserial.available()) {  
+        int bt_c = BTserial.read() & 0x00ff;
  
-      if (bt_c == 0xfe){
-        bt_com = 1;
-        bt_ptr = 0;
-      }
-      else if(bt_c == 0xfd){
-        bt_com = 2;
-      }
-      else if (bt_com == 1){
-        bt_buffer[bt_ptr] = bt_c;
-        if (++bt_ptr > 31) bt_ptr = 31;
-      }
+        if (bt_c == 0xfe){
+          bt_com = 1;
+          bt_ptr = 0;
+        }
+        else if(bt_c == 0xfd){
+         bt_com = 2;
+        }
+        else if (bt_com == 1){
+         bt_buffer[bt_ptr] = bt_c;
+         if (++bt_ptr > 31) bt_ptr = 31;
+        }
+    }
+
+  } else if (icom_interface == "max3232" && max3232_enabled == true) {
+    while (MAX3232.available()) {  
+        int bt_c = MAX3232.read() & 0x00ff;
+ 
+        if (bt_c == 0xfe){
+          bt_com = 1;
+          bt_ptr = 0;
+        }
+        else if(bt_c == 0xfd){
+         bt_com = 2;
+        }
+        else if (bt_com == 1){
+         bt_buffer[bt_ptr] = bt_c;
+         if (++bt_ptr > 31) bt_ptr = 31;
+        }
+    }
   }
+
   if (bt_com == 2){
     bt_com = 0;
     bt_ptr = 0;
