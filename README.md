@@ -312,7 +312,7 @@ The preferred method of interfacing the controller with an IC-705 is to use the 
   1. Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back).
   2. Connect the controller (name 'XPA128B') in the Bluetooth menu. Security code is whatever you chose when configuring the HC-05.
   3. Connect the control cable to the 3.5mm port on the IC-705 (this is used for PTT detection).
-  4. Configure the controller with `mode = "icom"` and `hl_05_enabled = true` (no other config needed)
+  4. Configure the controller with `mode = "icom"` and `hl_05_enabled = true` and `icom_interface = "hc_05"` (no other config needed)
   
 ## Solution 2
   
@@ -337,6 +337,19 @@ To solve the lack of band selection you can utilise `rigctld` running on a compu
   7. In a terminal: `./amp_serial_control.sh localhost 51111 <path to controller serial device>`
 
 That's it - you now have PTT and automatic band selection. For other software, such as WSJX-T, which needs control of the radio you can use `Hamlib` as the radio type and point it at rigctld using `localhost` port `51111`.
+
+# Icom 703 / Xiegu G90
+  
+It is possible to use the MAX3232 serial interface for other Icom and CI-V based radios, including the IC-703 and Xiegu G90, assuming they are presented as RS232.
+  
+You can achieve this for Icoms with the CT-17 interface they used to make or build your own. The same applies with the Xiegu G90 and any other CI-V radios. To use this mode, in the controller configuration set:
+  
+1. `mode` to `icom`
+2. `icom_interface` to `max3232`
+3. `max3232_enabled` to `true`
+4. `max3232_baud` to the correct baud rate for the radio/interface
+  
+Then connect the PTT trigger on the radio to pin `D3` on the controller.
 
 # SunSDR
   
