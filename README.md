@@ -14,6 +14,7 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 + Icom (Bluetooth such as the IC-705 or RS232)
 + SunSDR (EXT CTRL port)
 + Elecraft (KX2 / KX3)
++ Hermes-Lite 2
 + SparkSDR (Hermes-Lite 2)
 + Rigctld (any Hamlib compatible rig)
 
@@ -390,6 +391,24 @@ Elecraft radios such as the KX2 and KX3 provide a serial interface for control. 
 1. Connect the radio's ACC port to the controller (3.5mm to RS232)
 2. Configure the controller with `mode = "elecraft"`, ensure `max3232_enabled = true` and `hl_05_enabled = false` (no other config needed)
 
+# Hermes-Lite 2
+
+The Hermes-Lite 2 has a UART interface which can be connected to the D1 Mini and used to read the current frequency. There is no need to reduce the voltage unless the Hermes-Lite has the DB9 modification with 5V TTL.
+  
+Assuming you are connecting directly to the main board in the Hermes:
+  
+1. Connect pin 2 of the DB1 header in the Hermes to `D5` on the D1 Mini
+2. Connect pin 3 of the DB1 header in the Hermes to `D4` on the D1 Mini
+3. Connect pin 13 of the DB1 header in the Hermes to `GND` on the D1 Mini
+
+Next, in the controller configuration, ensure:
+  
+1) `hc_05_enabled` is `false`
+2) `max3232_enabled is `false`
+4) `mode` is set to `hermes`
+  
+Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the TX RCA socket to `D3` on the D1 Mini.
+  
 # MQTT
 
 As well as allowing control of the amplifier by publishing MQTT events the system is always updating current state to MQTT. You can use this feature to act as a bridge between Rigctl and MQTT even when no amplifier is involved. To do this:
