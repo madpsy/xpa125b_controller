@@ -178,7 +178,6 @@ String getValue(String data, char separator, int index)
 
 void ICACHE_RAM_ATTR handleTX(void) {
   if ((hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr") && (mode != "none")) {
-  delay(10); // prevents oscillation
   rx_state = digitalRead(tx_pin);
   if ((rx_state == LOW) && (serialonly == false)) {
       current_yaesu_rx = true;
