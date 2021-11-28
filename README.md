@@ -14,7 +14,7 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 + Icom (via Bluetooth, such as the IC-705)
 + SunSDR (EXT CTRL port)
 + Elecraft (KX2 / KX3)
-+ SparkSDR
++ SparkSDR (Hermes-Lite 2)
 + Rigctld (any Hamlib compatible rig)
 
 Rigctld support is the major feature which allows this to work with almost any radio, including SDRs such as the Flex 1500/3000, Hermes-Lite and ANAN based radios.
