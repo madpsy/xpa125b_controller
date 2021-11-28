@@ -116,7 +116,7 @@ The MAX3232 is an RS-232 transceiver which operates at 3V3 TTL so is perfect for
 
 If you wanted to run an Elecraft radio with the Hardrock-50 amplifier you could set the Hardrock-50 to `Yaesu 817` mode and use stepped voltages for control instead of serial. In that case in the controller configuration set `amplifier` to `minipa50` and connect the band pin on the Hardrock-50 to pin `D2` on the controler. See the amplifier's manual for more details.
 
-By default the MAX3232 uses the same pins as the HC-05 so decide which you need for your scenario. You could of course reassign the pins to have both running at once.
+By default the MAX3232 uses the same pins as the HC-05 so decide which you need for your scenario. You could of course reassign the pins to have both running at once. For example, if you don't need the band select pins (D5-D8) for your radio you could use two of those.
 
 1) `VCC` on the MAX3232 to the D1's `5VDC` pin
 2) `GND` on the MAX3232 to the D1's `GND` pin
