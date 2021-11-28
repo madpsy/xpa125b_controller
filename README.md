@@ -191,6 +191,21 @@ If you want to enable MQTT set the following:
 + `mqttuser` = <username>  (MQTT username)
 + `mqttpass` = <password>  (MQTT password)
   
+# Hybrid Mode
+  
+There is an option to always use the PTT detection pin `D3` even when the current mode supports PTT directly. A typical example is when in `rigctl` mode usually PTT state is determined by requesting it directly from rigctld in a polling fasion. However, if your radio has a PTT output (which goes to ground when it is TX'ing) you can wire this up to the controller and use it to detect PTT.
+  
+There are two main advantages to this method:
+  
+1. Reliability - you could argue this analog approach is more reliable than requesting state via a communications protocol
+2. Latency - because this method uses an interrupt in the controller it will always be quicker to react
+  
+To enable this mode simply set the following in the controller configuration:
+  
+1. `hybrid` to `true`
+  
+Now, reguardless of mode, PTT will be handled by waiting for the state of `D3` to change.
+  
 # Rigctl
 
 To make rigctl default on boot first ensure WiFi credentials are filled in and also set:
