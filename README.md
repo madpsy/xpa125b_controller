@@ -51,12 +51,13 @@ This project has grown arms and legs and is now a powerful tool way beyond its i
 
 # Bill of Materials
 
-Total cost of parts for this project is under £20/$25
+Total cost of parts for this project is under £30/$40
 
 + Small project box
 + WeMos D1 Mini
 + USB cable for D1
 + HC-05 Bluetooth module
++ 4-way logic level shifter (5V to 3V3)
 + Small perf board
 + 2N2222 transistor (or other NPN)
 + Ceramic capacitor
