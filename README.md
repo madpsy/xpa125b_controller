@@ -15,10 +15,10 @@ Written using the Arduino IDE. Required 3rd party libraries included for convien
 + SunSDR (EXT CTRL port)
 + Elecraft (KX2 / KX3)
 + Hermes-Lite 2
-+ SparkSDR (Hermes-Lite 2)
++ SparkSDR
 + Rigctld (any Hamlib compatible rig)
 
-Rigctld support is the major feature which allows this to work with almost any radio, including SDRs such as the Flex 1500/3000, Hermes-Lite and ANAN based radios.
+Rigctld support is the major feature which allows this to work with almost any radio, including SDRs such as the Flex 1500/3000 and ANAN based radios.
 
 # Supported Amplifiers:
 
@@ -392,6 +392,22 @@ Elecraft radios such as the KX2 and KX3 provide a serial interface for control. 
 2. Configure the controller with `mode = "elecraft"`, ensure `max3232_enabled = true` and `hl_05_enabled = false` (no other config needed)
 
 # Hermes-Lite 2
+  
+There are two ways to interface with a Hermes-Lite 2. Using rigctl via software such as SparkSDR and SDR Console or by using the serial interface.
+
+## SparkSDR
+
+As the SparkSDR software has built in rigctl support you can interface directly with this by putting the controller in `rigctl` mode and setting the IP address and port.
+  
+1. Enable CAT control in radio settings (tick `Enable Rigctl CAT`). The assigned port will be displayed.
+2. Set `mode` to `rigctl` in the controller configuration
+3. Set `rigctl_default_enable` to `true`
+4. Set `rigctl_default_address` to the IP address of the computer running SparkSDR
+5. Set `rigctl_default_port` to the port displayed when you enabled CAT control
+  
+This works for both band selection and PTT. You may wish to use `hybrid` mode for PTT to reduce latency if that is important to you. See the hybrid mode section further up for more information. If you want to use this mode, assuming you have the N2ADR board fitted, you can connect the center of the TX RCA socket to `D3` on the D1 Mini. Also ensure grounds are tied between the radio and the controller.
+  
+## Serial
 
 The Hermes-Lite 2 has a UART interface which can be connected to the D1 Mini and used to read the current frequency. There is no need to reduce the voltage unless the Hermes-Lite has the DB9 modification with 5V TTL.
   
@@ -407,7 +423,7 @@ Next, in the controller configuration, ensure:
 2) `max3232_enabled is `false`
 4) `mode` is set to `hermes`
   
-Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the TX RCA socket to `D3` on the D1 Mini.
+Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the TX RCA socket to `D3` on the D1 Mini. Also ensure grounds are tied between the radio and the controller.
   
 # MQTT
 
