@@ -27,7 +27,7 @@ char* icom_interface = "hc_05";
 bool hybrid = false;
 
 // milliseconds of debounce for analog PTT
-int debounceDelay = 0;
+int debounceDelay = 10;
 
 // enable bluetooth (required for Icom).
 // To program the HC-05, set hc_05_program to true and hold the button on the module for 2 seconds when applying power
@@ -89,6 +89,9 @@ int hc05_rxd_pin = D5;
 // MAX3232 - tx pin overlaps with SunSDR/Yaesu so you can either use MAX3232 (for Elecraft radio / Hardrock-50 amp) or SunSDR/Yaesu
 int max3232_txd_pin = D4;
 int max3232_rxd_pin = D5;
+// Hermes-Lite
+int hermes_txd_pin = D4;
+int hermes_rxd_pin = D5;
 // SunSDR EXT CTRL and Yaesu Band Data - requires level converter 5VDC to 3V3
 // X8 on the SunSDR and 'TX GND' on Yaesu (LINEAR mode) is PTT (no need for level converter)
 int band_data_1 = D5;
@@ -162,6 +165,7 @@ char ser_buffer[32];
 
 SoftwareSerial BTserial(hc05_txd_pin, hc05_rxd_pin);
 SoftwareSerial MAX3232(max3232_txd_pin, max3232_rxd_pin);
+SoftwareSerial Hermes(hermes_txd_pin, hermes_rxd_pin);
 
 String getValue(String data, char separator, int index)
 {
@@ -181,7 +185,7 @@ String getValue(String data, char separator, int index)
 }
 
 void ICACHE_RAM_ATTR handleTX(void) {
-  if ((hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr") && (mode != "none")) {
+  if ((hybrid == true || mode == "yaesu" || mode == "yaesu817" || mode == "icom" || mode == "sunsdr" || mode == "hermes") && (mode != "none")) {
   rx_state = digitalRead(tx_pin);
   if ((rx_state == LOW) && (serialonly == false)) {
       current_yaesu_rx = true;
@@ -349,9 +353,20 @@ bool setupAmplifier(String value) {
       return true;
     } else {
       amplifier = "none";
-      serialPrint("Failed to set amplifier set to hardrock50");
+      serialPrintln("Failed to set amplifier set to hardrock50");
       return false;
     }
+  }
+}
+
+bool setupHermes() {
+  if (hc_05_enabled == false && max3232_enabled == false) {
+    Hermes.begin(9600);
+    serialPrintln("Hermes-Lite configured");
+    return true;
+  } else {
+    serialPrintln("Cannot enable Hermes if hc_05 or max3232 are enabled");
+    return false;
   }
 }
 
@@ -604,6 +619,7 @@ void handleRoot() {
   message += "<option value='icom'>Icom</option>";
   message += "<option value='sunsdr'>SunSDR</option>";
   message += "<option value='elecraft'>Elecraft</option>";
+  message += "<option value='hermes'>Hermes-Lite</option>";
   message += "<option value='serial'>Serial</option>";
   message += "<option value='http'>HTTP</option>";
   message += "<option value='mqtt'>MQTT</option>";
@@ -668,7 +684,7 @@ void handleRoot() {
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
   message += "serialonly [true|false] (disables yaesu and wifi entirely)</br>";
-  message += "setmode [yaesu|yaesu817|icom|sunsdr|elecraft|serial|http|mqtt|rigctl|none]</br>";
+  message += "setmode [yaesu|yaesu817|icom|sunsdr|elecraft|hermes|serial|http|mqtt|rigctl|none]</br>";
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "setfreq [frequency in Hz]</br>";
@@ -679,7 +695,7 @@ void handleRoot() {
   message += "setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
   message += "setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
-  message += "/setmode mode=[yaesu|yaesu817|icom|sunsdr|elecraft|serial|http|mqtt|rigctl|none]</br>";
+  message += "/setmode mode=[yaesu|yaesu817|icom|sunsdr|elecraft|hermes|serial|http|mqtt|rigctl|none]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
   message += "/setfreq freq=[frequency in Hz]</br>";
@@ -800,6 +816,9 @@ void setMode(String value) {
       return;
     }
     if ((value == "elecraft") && (!setupMAX3232())) {
+      return;
+    }
+    if ((value == "hermes") && (!setupHermes())) {
       return;
     }
     mode = value;
@@ -1832,5 +1851,16 @@ void loop(void) {
       setState("rx");
     }
    }
+  }
+  
+  if ((mode == "hermes") && (serialonly == false)) {
+    if(Hermes.available()) {
+      char aa[100],dd[64];
+      String aaa;
+      aaa = Hermes.readStringUntil(';');
+      strncpy(aa,aaa.c_str(),13);
+      long unsigned fq = strtoul(&aa[4],NULL,10);
+      setFreq(String(fq));
+    }
   }
 }
