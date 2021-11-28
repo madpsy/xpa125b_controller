@@ -278,10 +278,10 @@ void handleNotFound() {
 
 bool setupBandData() {
   if (hc_05_enabled == false) {
-    pinMode(band_data_1,INPUT_PULLUP);
-    pinMode(band_data_1,INPUT_PULLUP);
-    pinMode(band_data_1,INPUT_PULLUP);
-    pinMode(band_data_1,INPUT_PULLUP);
+    pinMode(band_data_1,INPUT);
+    pinMode(band_data_1,INPUT);
+    pinMode(band_data_1,INPUT);
+    pinMode(band_data_1,INPUT);
     serialPrintln("Band data pins configured");
     return true;
   } else {
