@@ -173,10 +173,73 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
  If you want to use rigctl for band selection but prefer PTT to be via the control cable you can set `hybrid` to `true`.
  
  If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873.
+
+# Xiegu XPA125B Amplifier
+  
+To use this amplifier first connect the following:
+  
+1. Pin 2 of the ACC socket on the amp to the collector of the 2N2222 transistor
+2. Pin 3 of the ACC socket on the amp to the output of the RC filter
+  
+Then, in the controller configuration:
+  
+1. Set `amplifier` to `xpa125b`
+  
+The amplifier will now work with both PTT and automatic band selection.
+  
+# MiniPA50 Amplifier
+  
+This will work with any amplifier designed for the Yaesu 817/818 and indeed any amplifier which uses the same stepped voltages for band selection.
+  
+To use this amplifier first connect the following:
+  
+1. PTT pin of the ACC socket on the amp to the collector of the 2N2222 transistor
+2. Band pin of the ACC socket on the amp to the output of the RC filter
+  
+Then, in the controller configuration:
+  
+1. Set `amplifier` to `minipa50`
+  
+The amplifier will now work with both PTT and automatic band selection.
+  
+# Hardrock-50
+
+## Serial mode
+  
+To use this amplifier in serial mode you need a MAX3232 connected to the controller - see the MAX3232 section above for more information. Then connect the following:
+  
+1. Pin 4 of the ACC socket on the amp to the collector of the 2N2222 transistor
+2. Pin 2 of the ACC socket on the amp to the TX pin on the MAX3232
+3. Pin 3 of the ACC socket on the amp to the RX pin on the MAX3232
+  
+In the controller configuration:
+
+1. Set `max3232_enabled` to `true`
+2. Set `max3232_baud` to `38400`
+3. Set `amplifier` to `hardrock50`
+
+Finally, in the Hardrock-50's menu, set `ACC Baud Rate` to `38400`
+  
+## Yaesu 817/818 mode
+  
+The Hardrock-50 also supports band selection via stepped voltage. To use this mode:
+  
+1. Pin 4 of the ACC socket on the amp to the collector of the 2N2222 transistor
+2. Pin 2 of the ACC socket on the amp to the output of the RC filter
+  
+In the controller configuration:
+
+1. Set `amplifier` to `yaesu817`
+
+In the Hardrock-50's menu:
+  
+1. Set `Yaesu 817` Mode to `Yes`
+  
+That's it. The amplifier will now work with automatic band selection.
   
 # Yaesu Mode
 
-Most Yaesu radios (except the 817/818 - see below) use a similar method to SunSDR. There are four pins named Band A - D. We read the logic levels of the pins from the ACC port to determinte the band. PTT is handled via another pin called 'TX GND'.
+Most Yaesu radios (except the 817/818 - see below) use a similar method to SunSDR. There are four pins named Band A - D. We read the logic levels of the pins from the ACC port to determinte the band. This is effectively a 4 bit value. PTT is handled via another pin called 'TX GND'.
 
 Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damage the D1 Mini. An Arduino is 5VDC logic level so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
   
