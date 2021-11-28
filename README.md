@@ -572,6 +572,7 @@ In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power 
   
 # To Do
   
++ Convert lots of calls to asynchronous
 + Reduce the excessive use of `Strings` in the code
 + There is virtually no input validation. Therefore all input values are trusted. This can be a pro or a con.
 + Provide schematics for the interface board to the XPA125B amplifier
