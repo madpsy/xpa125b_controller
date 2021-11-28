@@ -68,7 +68,47 @@ Total cost of parts for this project is under £30/$40
 
 # Schematic
 
-To Do
+## PTT Trigger
+
+The PTT trigger is connected to the amplifier's PTT detect pin and is responsible for putting the amplifier into TX state. I suggest using a 2N222 transistor for this purpose. The value of the resistor isn't too critical in this application.
+
+![ptt_trigger](ptt_trigger.png)
+
+Connect the resistor to pin `D1` on the D1 Mini and the other end to the gate of the transistor. The emitter should be connected to ground and the collector to the PTT pin on the amplifier. You must also tie the grounds together between the D1 mini and the amplifier.
+
+## PTT Detect
+
+The PTT detect is used for radios such as the IC-705 or when in `hybrid` mode. This tells the controller the radio is in TX state. This simply makes the pin `HIGH` when in RX state and makes it go `LOW` in TX state.
+
+![ptt_detect](ptt_detect.png)
+
+Connect one end of the resistor to the `3V3` pin on the D1 mini and the other end to `D3` on the D1 Mini. The radio's PTT pin should then also connect to `D3`. Again, you must tie the grounds together between the D1 Mini and the radio.
+
+## RC Filter
+
+The RC filter is an attempt to smooth the PWM voltage from the D1 Mini. Without this you might find amplifiers which use stepped voltage for band selection are unstable (randomly switching between bands). The values for the resistor and ceramic capacitor are quite critical and the values given below are just an example. You might find you need to tweak these values (generally adding more capacitance).
+
+![rc_filter](rc_filter.png)
+
+Connect one end of the resistor to pin `D2` on the D1 mini and the other end to the band selection pin on the amplifier. One end of the capacitor should be connected to the amplifier side of the resistor and the other end to ground. Again, you must tie the grounds between the D1 Mini and the amplifier.
+
+## Logic Level Shifter
+
+When using `yaesu` (except the 817/818) or `SunSDR` as the radio you need to connect a logic level shifter. The low side of the shifter should connect to the D1 Mini pins and the high side to the radio's control port pins.
+
+For Yaesu:
+
++ `BAND-A` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `BAND-B` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `BAND-C` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `BAND-D` pin of the radio to `D5` of the D1 Mini (via the shifter)
+
+For SunSDR:
+
++ `X3` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `X4` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `X5` pin of the radio to `D5` of the D1 Mini (via the shifter)
++ `X6` pin of the radio to `D5` of the D1 Mini (via the shifter)
 
 # Bluetooth module (HC-05)
 
