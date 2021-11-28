@@ -92,7 +92,7 @@ If you set this to a value and notice PTT no longer works try increasing the val
 
 ## RC Filter
 
-The RC filter is an attempt to smooth the PWM voltage from the D1 Mini. Without this you might find amplifiers which use stepped voltage for band selection are unstable (randomly switching between bands). The values for the resistor and ceramic capacitor are quite critical and the values given below are just an example. You might find you need to tweak these values (generally adding more capacitance). I have seen a 10k resistor and 10uF capacitor work so just experiment.
+The RC filter is an attempt to smooth the PWM voltage from the D1 Mini by means of a 1st order LPF. Without this you might find amplifiers which use stepped voltage for band selection are unstable (randomly switching between bands). The values for the resistor and ceramic capacitor are quite critical and the values given below are just an example. You might find you need to tweak these values. I have seen a 10k resistor and 10uF capacitor work so just experiment.
 
 ![rc_filter](images/rc_filter.png)
 
