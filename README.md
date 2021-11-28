@@ -1,5 +1,6 @@
-# XPA125B Amplifier Network & Serial Controller
-Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, `icom`, `sunsdr`, `elecraft` and `serial` mode. This would enable you to use a Yaesu, Icom, SunSDR or Elecraft rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in rigctl mode which is perfectly adequate for almost all digital work as well as phone. With modes which interface direct, such as Yaesu, SunSDR and serial the latency is an order of magnitude less.
+# Amplifier Controller with Network, Bluetooth and Serial interfaces
+
+Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier and others. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, `icom`, `sunsdr`, `elecraft` and `serial` mode. This would enable you to use a Yaesu, Icom, SunSDR or Elecraft rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will work (albeit requiring the use of WiFi). The latency is ~100ms in rigctl mode which is perfectly adequate for almost all digital work as well as phone. With modes which interface direct, such as Yaesu, SunSDR and serial the latency is an order of magnitude less.
 
 Written using the Arduino IDE. Required 3rd party libraries included for convience.
 
@@ -104,6 +105,29 @@ That's the programming done so disable programming mode on the controller:
 3. Reapply power
 
 The LED should start blinking fast and is waiting for a client connection. See the `Bluetooth Serial Console` below for examples of how to connect to it.
+
+# MAX3232
+
+The MAX3232 is an RS-232 transceiver which operates at 3V3 TTL so is perfect for a D1 Mini. We can use this for interfacing with RS-232 based devices, such as:
+
+1. Elecraft KX-2/KX-3
+2. Hardrock-50 amplifier
+
+If you wanted to run an Elecraft radio with the Hardrock-50 amplifier you could set the Hardrock-50 to `Yaesu 817` mode and use stepped voltages for control instead of serial. In that case in the controller configuration set `amplifier` to `minipa50` and connect the band pin on the Hardrock-50 to pin `D2` on the controler. See the amplifier's manual for more details.
+
+By default the MAX3232 uses the same pins as the HC-05 so decide which you need for your scenario. You could of course reassign the pins to have both running at once.
+
+1) `VCC` on the MAX3232 to the D1's `5VDC` pin
+2) `GND` on the MAX3232 to the D1's `GND` pin
+3) `TXD` on the MAX3232 to the D1's `D4` pin
+4) `RXD` on the MAX3232 to the D1's `D5` pin
+
+In the controller configuration:
+
+1. Set `max3232_enabled` to `true`
+2. Set `max3232_baud` to `38400` (or whatever you need)
+
+That's it as far as configuration goes.
 
 # Configuration
 
