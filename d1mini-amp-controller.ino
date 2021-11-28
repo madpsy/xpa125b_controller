@@ -27,7 +27,7 @@ char* icom_interface = "hc_05";
 bool hybrid = false;
 
 // milliseconds of debounce for analog PTT
-int debounceDelay = 10;
+int debounceDelay = 0;
 
 // enable bluetooth (required for Icom).
 // To program the HC-05, set hc_05_program to true and hold the button on the module for 2 seconds when applying power
