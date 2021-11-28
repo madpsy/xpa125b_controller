@@ -222,7 +222,7 @@ Finally, in the Hardrock-50's menu, set `ACC Baud Rate` to `38400`
   
 ## Yaesu 817/818 mode
   
-The Hardrock-50 also supports band selection via stepped voltage. To use this mode:
+The Hardrock-50 also supports band selection via stepped voltage, the same as the MiniPA50. To use this mode:
   
 1. Pin 4 of the ACC socket on the amp to the collector of the 2N2222 transistor
 2. Pin 2 of the ACC socket on the amp to the output of the RC filter
