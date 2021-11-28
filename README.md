@@ -82,7 +82,13 @@ The PTT detect is used for radios such as the IC-705 or when in `hybrid` mode. T
 
 ![ptt_detect](images/ptt_detect.png)
 
-Connect one end of the resistor to the `3V3` pin on the D1 mini and the other end to `D3` on the D1 Mini. The radio's PTT pin should then also connect to `D3`. Again, you must tie the grounds together between the D1 Mini and the radio.
+Connect one end of the resistor to the `3V3` pin on the D1 mini and the other end to `D3` on the D1 Mini. The radio's TX enabled pin should then also connect to `D3`. Again, you must tie the grounds together between the D1 Mini and the radio.
+
+There is built in debounce logic which you can enable if your radio uses a relay on its TX enabled output or you are using a switch like the MFJ-1708. This isn't usually neccessary but if you notice the controller state oscillating when you TX you probably want to set this to some value of milliseconds. In the controller configuration:
+
+1. Set `debounceDelay` to some value > `0`.
+
+I've found `10` milliseconds works well for me when a relay is involved.
 
 ## RC Filter
 
