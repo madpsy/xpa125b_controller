@@ -229,7 +229,7 @@ The Hardrock-50 also supports band selection via stepped voltage. To use this mo
   
 In the controller configuration:
 
-1. Set `amplifier` to `yaesu817`
+1. Set `amplifier` to `minipa50`
 
 In the Hardrock-50's menu:
   
