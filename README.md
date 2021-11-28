@@ -110,7 +110,7 @@ The LED should start blinking fast and is waiting for a client connection. See t
 
 The MAX3232 is an RS-232 transceiver which operates at 3V3 TTL so is perfect for a D1 Mini. We can use this for interfacing with RS-232 based devices, such as:
 
-1. Elecraft KX-2/KX-3
+1. Elecraft KX2/KX3
 2. Hardrock-50 amplifier
 
 If you wanted to run an Elecraft radio with the Hardrock-50 amplifier you could set the Hardrock-50 to `Yaesu 817` mode and use stepped voltages for control instead of serial. In that case in the controller configuration set `amplifier` to `minipa50` and connect the band pin on the Hardrock-50 to pin `D2` on the controler. See the amplifier's manual for more details.
