@@ -231,7 +231,7 @@ As an example, if you want to use SDR Console as the rig, first enable CAT contr
   
  In essense this operates as an API translation layer to rigctl.
   
- If you want to use rigctl for band selection but prefer PTT to be via the control cable you can set `hybrid` to `true`.
+ If you want to use rigctl for band selection but prefer PTT to be via the control cable you can set `hybrid` to `true`. This will substantially reduce latency but requires your radio to have an output which goes to ground when it is TX'ing.
  
  If you are using `rigctld` on Windows you need a recent version of Hamlib due to a bug I discovered while developing this controller. More details here: https://github.com/Hamlib/Hamlib/issues/873.
 
