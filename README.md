@@ -264,7 +264,7 @@ A popular QRP radio is the Icom-705 and the XPA125B makes a good companion in si
 The preferred method of interfacing the controller with an IC-705 is to use the Blueooth feature built into the radio. With this method the radio presents the CI-V interface over bluetooth which connects to the HC-05 module of the controller. We use this to request the frequency (and thus band) from the radio. This method requires no network connectivity of the controller if you don't want or need access to the other APIs.
   
   1. Change the Bluetooth Data setting on the IC-705 to CIV Data (Echo Back).
-  2. Connect the controller (name 'XPA128B') in the Bluetooth menu. Security code: 1234.
+  2. Connect the controller (name 'XPA128B') in the Bluetooth menu. Security code is whatever you chose when configuring the HC-05.
   3. Connect the control cable to the 3.5mm port on the IC-705 (this is used for PTT detection).
   4. Configure the controller with `mode = "icom"` and `hl_05_enabled = true` (no other config needed)
   
