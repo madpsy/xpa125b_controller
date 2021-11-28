@@ -348,8 +348,10 @@ You can achieve this for Icoms with the CT-17 interface they used to make or bui
 2. `icom_interface` to `max3232`
 3. `max3232_enabled` to `true`
 4. `max3232_baud` to the correct baud rate for the radio/interface
+
+Connect the RX pin on the CI-V interface to the TX pin on the MAX3232 and the TX pin on the CI-V interface to the RX pin on the MAX3232.
   
-Then connect the PTT trigger on the radio to pin `D3` on the controller.
+Finally, connect the PTT trigger on the radio to pin `D3` on the controller.
 
 # SunSDR
   
