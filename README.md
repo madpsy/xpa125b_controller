@@ -110,6 +110,12 @@ For SunSDR:
 + `X5` pin of the radio to `D7` of the D1 Mini (via the shifter)
 + `X6` pin of the radio to `D8` of the D1 Mini (via the shifter)
 
+## Yaesu 817/818
+
+Yaesu radios which use stepped voltage for outputting band selection should have their `BAND` pin connected to `A0` on the D1 Mini. This is the ADC which can read the voltage.
+
+Other radios which use stepped voltage could also be used, though you may need to tweak the relative values in the code.
+
 # Bluetooth module (HC-05)
 
 With the `HC-05 Bluetooth module` (don't mix this up with the HC-06) you can add an additional UART serial interface to the D1 Mini. We can use this for a couple of things.
