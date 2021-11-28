@@ -361,6 +361,9 @@ bool setupAmplifier(String value) {
 
 bool setupHermes() {
   if (hc_05_enabled == false && max3232_enabled == false) {
+    pinMode(hermes_txd_pin, INPUT_PULLUP);
+    // might not be neccessary?
+    //pinMode(hermes_rxd_pin, INPUT_PULLUP);
     Hermes.begin(9600);
     serialPrintln("Hermes-Lite configured");
     return true;
