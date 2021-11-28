@@ -22,7 +22,7 @@ Rigctld support is the major feature which allows this to work with almost any r
 # Supported Amplifiers:
 
 + Xiegu XPA125B
-+ Hardrock-50 (serial and Yaesu 817 mode)
++ Hardrock-50
 + MiniPA50 (and other Yaesu 817 compatible amplifiers)
 
 Adding additional amplifiers is fairly trivial providing it uses either voltage or serial for band control and PTT is triggered by grounding an input.
