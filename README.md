@@ -491,8 +491,6 @@ Note: When you use `setfreq` the system will translate this into a band automati
 + /rigmode (show mode the rigctl radio is set to (FM, USB etc)
 + /status (show status summary in HTML - only available via http)
 
-MQTT topic prefix is 'xpa125b' followed by the same paths as above (where the message is the values in [])
-
 # Example API calls
 
 Note: mDNS should be xpa125b.local
@@ -501,10 +499,18 @@ Note: mDNS should be xpa125b.local
 + `curl -s http://xpa125b.local/txtime`
 + `mosquitto_pub -h hostname -u username -P password -t xpa125b/setmode -m http`
 + `mosquitto_sub -h hostname -u username -P password -t xpa125b/txtime`
+  
+MQTT topic prefix is 'xpa125b' followed by the same paths as HTTP (where the message is the values in [])
 
 When `serialonly` is set to `true` neither http/mqtt (wifi is disabled) nor yaesu/icom/sunsdr/elecraft etc can be used. You can always use 'setmode' with serial/http/mqtt reguardless of current mode except when serialonly is enabled, in which case it only works via serial
   
 Note: When using `setfreq` it automatically sets the correct band. Therefore, use either `setfreq` or `setband` but not both.
+  
+# Mode
+  
+The current `mode` tells the controller from which interface it should recieve commands to change state - namely band/frequency and enable TX.
+
+Note: You can always change the current mode using `setmode` from HTTP (REST), MQTT and serial interfaces, reguardless of what it's currently set to.
 
 + In yaesu mode only the Yaesu standard voltage input is used for band selection and rx/tx is only via the control cable
 + In icom mode only a Bluetooth attached Icom radio is used for band selection and rx/tx is only via the control cable
