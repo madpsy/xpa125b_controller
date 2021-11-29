@@ -549,7 +549,7 @@ Assuming rigctld is available on `localhost` port `51111` and the serial interfa
 
 In a different terminal you can watch the serial output by running:
   
-`./amp_serial_messages.sh /dev/ttyUSB0`
+`cat /dev/ttyUSB0`
   
 Now all frequency, mode and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. 
   
@@ -581,7 +581,7 @@ Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following
   
 `./amp_serial_control.sh localhost 51111 /dev/rfcomm0`
 
-`./amp_serial_messages.sh /dev/rfcomm0`
+`cat /dev/rfcomm0`
 
 Windows supports Bluetooth serial devices too (not sure about Mac) and there are even mobile phone apps available, such as `Serial Bluetooth Terminal` by Kai Morich for Android. If using that app I've found setting 'newline' to 'CR+LF' for both Send and Recieve works well.
 
