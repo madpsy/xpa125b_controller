@@ -43,13 +43,11 @@ Even if a particular API isn't the current active mode for control purposes it c
 
 This project has grown arms and legs and is now a powerful tool way beyond its initial intended use. The most useful feature is providing multiple APIs on top of rigctl to allow integration into almost any custom software.
 
-+ Use any Yaesu radio with the amplifier (no WiFi required)
-+ Use the Icom-705 via Bluetooth with the amplifier (no WiFi required)
-+ Use a SunSDR via EXT CTRL port with a level converter (no WiFi required)
-+ Use an Elecraft KX2/KX3 (no WiFi required)
-+ Use any Hamlib compatible radio with the amplifier (no WiFi required)
++ Interface any supported radio with any supported amplifier
++ Use any Hamlib compatible radio with a supported amplifier
 + Provide a Web/REST/MQTT/Serial API interface to rigctl
-+ Allow automation via Node-RED to any hamlib compatible radio
++ Allow automation via Node-RED to any Hamlib compatible radio
++ Build a custom frontend to display frequency, operating mode PTT state
 + Expand to support other radios and amplifiers if desired
 
 # Bill of Materials
