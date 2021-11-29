@@ -401,7 +401,7 @@ There are two ways to interface with a Hermes-Lite 2. Using rigctl via software 
 
 As the SparkSDR software has built in rigctl support you can interface directly with this by putting the controller in `rigctl` mode and setting the IP address and port.
   
-1. Enable CAT control in radio settings (tick `Enable Rigctl CAT`). The assigned port will be displayed.
+1. In SparkSDR, enable CAT control under radio settings (tick `Enable Rigctl CAT`). The assigned port will be displayed.
 2. Set `mode` to `rigctl` in the controller configuration
 3. Set `rigctl_default_enable` to `true`
 4. Set `rigctl_default_address` to the IP address of the computer running SparkSDR
