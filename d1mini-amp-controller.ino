@@ -1,6 +1,6 @@
 // *********** START CONFIG ***********
 
-// Serial - baud rate and state if we should use the bluetooth module (hc-05) for normal serial use
+// Serial - baud rate for internal serial port and state if we should use the bluetooth module (hc-05) for normal serial use
 // Must also set hc_05_enabled for bluetooth serial mode.
 // Ensure newline is set to 'CR+LF' in the serial software
 int serial_baud = 115200;
@@ -29,14 +29,18 @@ bool hybrid = false;
 // milliseconds of debounce for analog PTT
 int debounce_delay = 0;
 
-// enable bluetooth (required for Icom).
-// To program the HC-05, set hc_05_program to true and hold the button on the module for 2 seconds when applying power
+// enable bluetooth (required for Icom)
+// To program the HC-05:
+// set use_bluetooth_serial to false
+// set hc_05_enabled to true
+// set hc_05_program to true 
+// hold the button on the module for 2 seconds when applying power
 // programming mode can also be used as an echo test
 // Set line ending to NL & CR
 // Sending 'AT' via the D1's serial should respond with 'OK'
 // AT+NAME:XPA125B
 // AT+PSWD:"6245"
-// AT+UART:38400,0,0
+// AT+UART:9600,0,0
 bool hc_05_enabled = false;
 bool hc_05_program = false;
 int hc_05_baud = 38400;
@@ -1124,7 +1128,7 @@ void wifi(String state) {
     if (WiFi.status() == WL_CONNECTED) {
       serialPrintln("");
       serialPrint("Connected to ");
-      serialPrintln(ssid);
+      serialPrintln(WiFi.SSID());
       serialPrint("RSSI ");
       serialPrintln(WiFi.RSSI());
       serialPrint("IP address: ");
@@ -1276,10 +1280,11 @@ void setup(void) {
   Serial.begin(serial_baud);
   
   delay(500); // computer serial port takes time to be available after reset
-  
-  if ((use_bluetooth_serial == true) && (hc_05_enabled = true)) {
+
+  if (hc_05_enabled == true && use_bluetooth_serial == true) {
     BTserial.begin(hc_05_baud);
-    Serial.println("Using bluetooth for serial - check there instead");
+    Serial.println("**** Using HC-05 for serial - check there instead ****");
+    BTserial.println("**** Using HC-05 for serial ****");
   }
   
   serialPrintln("XPA125B controller started");
@@ -1291,7 +1296,11 @@ void setup(void) {
   setupAmplifier(amplifier);
 
   if (hc_05_enabled == true && use_bluetooth_serial == false) {
-    BTserial.begin(hc_05_baud);
+    if (hc_05_program == true) {
+      BTserial.begin(38400);
+    } else {
+      BTserial.begin(hc_05_baud);
+    }  
     serialPrintln("HC-05 enabled");
   }
 
@@ -1676,6 +1685,7 @@ void loop(void) {
     while (BTserial.available()) {
        //String BTserial = Serial.readStringUntil(serialEOL);
        int value = BTserial.read();
+       Serial.println("reading from hc_05");
        Serial.write(value);
        //serialPrint(BTserial);
     }
