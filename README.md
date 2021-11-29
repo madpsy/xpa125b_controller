@@ -415,9 +415,9 @@ The Hermes-Lite 2 has a UART interface on the DB1 connector located at the front
   
 Assuming you are connecting directly to the main board in the Hermes:
   
-1. Connect pin 2 of the DB1 header in the Hermes to `D5` on the D1 Mini
-2. Connect pin 3 of the DB1 header in the Hermes to `D4` on the D1 Mini
-3. Connect pin 13 of the DB1 header in the Hermes to `GND` on the D1 Mini
+1. Connect pin `2` of the DB1 header in the Hermes to `D5` on the D1 Mini
+2. Connect pin `3` of the DB1 header in the Hermes to `D4` on the D1 Mini
+3. Connect pin `13` of the DB1 header in the Hermes to `GND` on the D1 Mini
 
 Next, in the controller configuration, ensure:
   
