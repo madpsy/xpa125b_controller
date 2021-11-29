@@ -440,9 +440,13 @@ Now every state change will be published as an event to MQTT to be consumed by o
   
 A simple web interface is available on port 80 which allows access to basic functionality as well as documentation. This uses REST so anything which can be done here can also be achieved via the API.
   
+In order to change band or trigger PTT from either the web or REST interface you must set the `mode` to `http`. This can be done using `setmode`. See below for further details.
+  
 ![web](images/webinterface.png "web")
   
 # Valid serial commands (115200 baud):
+  
+In order to change band or trigger PTT from the serial interface you must set the `mode` to `serial`. This can be done using `setmode`. See below for further details.
 
 + serialonly [true|false] (disables every other mode and wifi entirely)
 + setmode [yaesu|yaesu817|icom|elecraft|hermes|serial|http|mqtt|rigctl|none]
@@ -456,7 +460,7 @@ A simple web interface is available on port 80 which allows access to basic func
 + setrigctlmode mode=[mode] ('mode' depends on radio - only available in rigctl mode)
 + setrigctlptt ptt=[0|1] (only available in rigctl mode)
   
-Note: There are no commands to get current states over serial. The reason being all state changes are printed when they occur so you need to parse and track them as they appear.
+Note: There are no commands to get current states over serial. The reason being all state changes are written to the serial interface when they occur so you need to parse and track them as they appear.
 
 # Valid HTTP POST paths:
 
