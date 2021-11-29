@@ -413,13 +413,15 @@ This works for both band selection and PTT. You may wish to use `hybrid` mode fo
   
 ## Serial
 
-The Hermes-Lite 2 has a UART interface on the DB1 connector located at the front of the main board. It can be connected to the D1 Mini and used to read the current frequency. There is no need to reduce the voltage unless the Hermes-Lite has the DB9 modification with 5V TTL.
+The Hermes-Lite 2 has a UART interface on the `DB1` connector located at the front of the main board. It appears to use the same format as Elecraft and can be connected to the D1 Mini to read the current frequency. There is no need to reduce the voltage unless the Hermes-Lite has the DB9 modification with 5V TTL.
   
 Assuming you are connecting directly to the main board in the Hermes:
   
 1. Connect pin `2` of the DB1 header in the Hermes to `D5` on the D1 Mini
 2. Connect pin `3` of the DB1 header in the Hermes to `D4` on the D1 Mini
 3. Connect pin `13` of the DB1 header in the Hermes to `GND` on the D1 Mini
+  
+Note: You don't actually need to connect pin `2` as no data is sent to the Hermes - it transmits the frequency whenever it changes.
 
 Next, in the controller configuration, ensure:
   
