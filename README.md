@@ -107,6 +107,8 @@ Connect one end of the resistor to pin `D2` on the D1 mini and the other end to 
 
 When using `yaesu` (except the 817/818) or `SunSDR` as the radio you need to connect a logic level shifter. The low side of the shifter should connect to the D1 Mini pins and the high side to the radio's control port pins.
 
+Note: These pins overlap with the `hc_05`, `max3232` and Hermes-Lite UART interfaces so if you need to use this you can't have any external serial interfaces enabled.
+
 For Yaesu:
 
 + `BAND-A` pin of the radio to `D5` of the D1 Mini (via the shifter)
@@ -173,12 +175,12 @@ The MAX3232 is an RS-232 transceiver which operates at 3V3 TTL so is perfect for
 
 If you wanted to run an Elecraft radio with the Hardrock-50 amplifier you could set the Hardrock-50 to `Yaesu 817` mode and use stepped voltages for control instead of serial. In that case in the controller configuration set `amplifier` to `minipa50` and connect the band pin on the Hardrock-50 to pin `D2` on the controler. See the amplifier's manual for more details.
 
-By default the MAX3232 uses the same pins as the HC-05 so decide which you need for your scenario. You could of course reassign the pins to have both running at once. For example, if you don't need the band select pins (D5-D8) for your radio you could use two of those.
+By default the MAX3232 uses the same pins as the Hermes-Lite UART interface and Band Data pins for Yaesu/SunSDR so decide which you need for your scenario. You could of course reassign the pins for the combination you need.
 
 1) `VCC` on the MAX3232 to the D1's `5VDC` pin
 2) `GND` on the MAX3232 to the D1's `GND` pin
-3) `TXD` on the MAX3232 to the D1's `D4` pin
-4) `RXD` on the MAX3232 to the D1's `D5` pin
+3) `TXD` on the MAX3232 to the D1's `D6` pin
+4) `RXD` on the MAX3232 to the D1's `D7` pin
 
 In the controller configuration:
 
@@ -417,16 +419,16 @@ The Hermes-Lite 2 has a UART interface on the `DB1` connector located at the fro
   
 Assuming you are connecting directly to the main board in the Hermes:
   
-1. Connect pin `2` of the DB1 header in the Hermes to `D5` on the D1 Mini
-2. Connect pin `3` of the DB1 header in the Hermes to `D4` on the D1 Mini
+1. Connect pin `2` of the DB1 header in the Hermes to `D7` on the D1 Mini
+2. Connect pin `3` of the DB1 header in the Hermes to `D6` on the D1 Mini
 3. Connect pin `13` of the DB1 header in the Hermes to `GND` on the D1 Mini
   
 Note: You don't actually need to connect pin `2` as no data is sent to the Hermes - it transmits the frequency whenever it changes.
 
 Next, in the controller configuration, ensure:
   
-1) `hc_05_enabled` is `false`
-2) `max3232_enabled` is `false`
+1) `max3232_enabled` is `false`
+2) `hermes_enabled` is `true`
 4) `mode` is set to `hermes`
   
 Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the EXTTR RCA to `D3` on the D1 Mini. Also ensure grounds are tied between the radio and the controller.
