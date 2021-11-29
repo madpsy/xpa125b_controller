@@ -79,9 +79,11 @@ Connect the resistor to pin `D1` on the D1 Mini and the other end to the gate of
 
 ## PTT Detect
 
-The PTT detect is used for radios such as the IC-705 or when in `hybrid` mode. This tells the controller the radio is in TX state. This simply makes the pin `HIGH` when in RX state and makes it go `LOW` in TX state.
+The PTT detect is used for radios such as the IC-705 or when in `hybrid` mode. This tells the controller the radio is in TX state. This pullup resistor simply makes the pin `HIGH` when in RX state and makes it go `LOW` in TX state.
 
 ![ptt_detect](images/ptt_detect.png)
+
+You could use the internal pullup resistor in the microcontroller by setting the pin to `INPUT_PULLUP` but I've had better luck using an external resistor like this.
 
 Connect one end of the resistor to the `3V3` pin on the D1 mini and the other end to `D3` on the D1 Mini. The radio's TX enabled pin should then also connect to `D3`. Again, you must tie the grounds together between the D1 Mini and the radio.
 
