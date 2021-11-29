@@ -13,8 +13,8 @@ Designed and written for a D1 Mini microcontroller using the Arduino IDE.
 # Supported Radios:
 
 + Yaesu (including 817/818)
-+ Icom (Bluetooth such as the IC-705 or RS232)
-+ SunSDR (EXT CTRL port)
++ Icom (Bluetooth & RS232)
++ SunSDR
 + Elecraft (KX2 / KX3)
 + Hermes-Lite 2
 + SparkSDR
