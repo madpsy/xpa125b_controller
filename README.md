@@ -415,15 +415,15 @@ This works for both band selection and PTT. You may wish to use `hybrid` mode fo
   
 ## Serial
 
-The Hermes-Lite 2 has a UART interface on the `DB1` connector located at the front of the main board. It appears to use the same format as Elecraft and can be connected to the D1 Mini to read the current frequency. There is no need to reduce the voltage unless the Hermes-Lite has the DB9 modification with 5V TTL.
+The Hermes-Lite 2 has a UART interface on the `DB1` header located at the front of the main board. It appears to use the same format as Elecraft and can be connected to the D1 Mini to read the current frequency. There is no need to shift the voltage if connecting directly to the `DB1` header.
   
-Assuming you are connecting directly to the main board in the Hermes:
+Assuming you are connecting directly to the `DB1` header in the Hermes:
   
 1. Connect pin `2` of the DB1 header in the Hermes to `D7` on the D1 Mini (optional)
 2. Connect pin `3` of the DB1 header in the Hermes to `D6` on the D1 Mini
 3. Connect pin `13` of the DB1 header in the Hermes to `GND` on the D1 Mini
   
-Note: You don't actually need to connect pin `2` to `D7` as no data is sent to the Hermes - it transmits the frequency whenever it changes.
+Note: You don't actually need to connect pin `2` to `D7` as no data is sent to the Hermes - it sends the frequency whenever it changes.
 
 Next, in the controller configuration, ensure:
   
@@ -432,6 +432,8 @@ Next, in the controller configuration, ensure:
 4) `mode` is set to `hermes`
   
 Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the EXTTR RCA to `D3` on the D1 Mini. Also ensure grounds are tied between the radio and the controller.
+  
+One suggestion is using stereo 3.5mm chassis mounts on both the Hermes-Lite 2 and the controller for the serial connection. It's quick and easy and allows the use of a standard stereo audio cable to connect them together.
   
 # MQTT
 
