@@ -1,8 +1,8 @@
 # Amplifier Controller with Network, Bluetooth and Serial Interfaces
 
-Xiegu XPA125B (https://xiegu.eu/product/xpa125-100w-solid-state-linear-amplifier/) network control interface designed for a D1 Mini (https://www.wemos.cc/en/latest/d1/d1_mini.html). This allows you to use virtually any rig, including SDRs, with this amplifier and others. Both PTT and automatic band selection are supported. Although WiFi is required for the APIs you can also operate without network access in `yaesu`, `icom`, `sunsdr`, `elecraft`, `hermes` and `serial` mode. This would enable you to use a Yaesu, Icom, SunSDR or Elecraft rig and have the benefit of automatic band selection. The primary intended use of the controller is to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will also work. Software such as SparkSDR has rigctl built in meaning it will work too.
+Initially designed as an interface for the Xiegu XPA125B, this amplifier network control interface provides support for multiple radios and amplifiers. It provides both PTT and automatic band selection. Although WiFi is required for the APIs you can also operate without network access if prefered. This enables you to use a Yaesu, Icom, SunSDR, Elecraft or Hemes-Lite 2 and have the benefit of automatic band selection. The initial intended use of the controller was to hook directly into `rigctld` (https://hamlib.github.io/) meaning any rig which it supports will also work. Software such as SparkSDR has rigctl built in.
 
-Written using the Arduino IDE. Required 3rd party libraries included for convience.
+Designed and written for a D1 Mini microcontroller using the Arduino IDE.
 
 ![assembled](images/controller_assembled.jpg)
 
