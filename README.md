@@ -145,9 +145,10 @@ The controller has a built in programming mode for the HC-05 which allows you to
 
 In the controller's config, set the following:
 
-1. `hc_05_enabled` to `true`
-2. `hc_05_program` to `true`
-3. `hc_05_baud` to `38400`
+1. `use_bluetooth_serial` to `false`
+2. `hc_05_enabled` to `true`
+3. `hc_05_program` to `true`
+4. `hc_05_baud` to `9600`
 
 Before applying power to the D1 mini, hold the button on the HC-05, apply power, let go of the button after two seconds. The LED shold start blinking slowly (as opposed to the fast blinking it usually does). Now we can program it using `AT` commands.
 
@@ -156,11 +157,13 @@ Before applying power to the D1 mini, hold the button on the HC-05, apply power,
 3. Send `AT` and you should see an `OK` back. This should happen after every succesful command
 4. Send `AT+NAME:XPA125B` - this sets the Bluetooth name to `XPA125B`
 5. Send `AT+PSWD:"6245"` - this sets the PIN to 6245 (just an example)
-6. Send `AT+UART:38400,0,0` - this will make the default baud rate `38400`
+6. Send `AT+UART:9600,0,0` - this will make the default baud rate `9600`
+
+Note: In AT command mode the HC-05 expects a baud rate of `38400` so the controller uses this in programming mode. I've found using a lower baud rate works best for normal operation but you should experiment.
 
 That's the programming done so disable programming mode on the controller:
 
-1. Set `hc_05_enabled` to `false` on the controller
+1. Set `hc_05_program` to `false` on the controller
 2. Remove power from the HC-05 / D1 mini
 3. Reapply power
 
