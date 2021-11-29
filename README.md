@@ -159,7 +159,7 @@ Before applying power to the D1 mini, hold the button on the HC-05, apply power,
 5. Send `AT+PSWD:"6245"` - this sets the PIN to 6245 (just an example)
 6. Send `AT+UART:9600,0,0` - this will make the default baud rate `9600`
 
-Note: In AT command mode the HC-05 expects a baud rate of `38400` so the controller uses this in programming mode. I've found using a lower baud rate works best for normal operation but you should experiment.
+Note: In AT command mode the HC-05 expects a baud rate of `38400` so the controller automatically uses this rate in programming mode. I've found using a lower baud rate works best for normal operation but you should experiment.
 
 That's the programming done so disable programming mode on the controller:
 
@@ -188,9 +188,9 @@ By default the MAX3232 uses the same pins as the Hermes-Lite UART interface and 
 In the controller configuration:
 
 1. Set `max3232_enabled` to `true`
-2. Set `max3232_baud` to `38400` (or whatever you need)
+2. Set `max3232_baud` to `9600` (the higher you go the more chance of corruption)
 
-That's it as far as configuration goes.
+That's it as far as configuration goes. Ensure whatever baud rate you chose is matched to the device plugged into it.
 
 # Configuration
 
@@ -292,10 +292,10 @@ To use this amplifier in serial mode you need a MAX3232 connected to the control
 In the controller configuration:
 
 1. Set `max3232_enabled` to `true`
-2. Set `max3232_baud` to `38400`
+2. Set `max3232_baud` to `9600`
 3. Set `amplifier` to `hardrock50`
 
-Finally, in the Hardrock-50's menu, set `ACC Baud Rate` to `38400`
+Finally, in the Hardrock-50's menu, set `ACC Baud Rate` to `9600`
   
 ## Yaesu 817/818 mode
   
