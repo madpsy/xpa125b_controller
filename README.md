@@ -522,7 +522,7 @@ Note: You can always change the current mode using `setmode` from HTTP (REST), M
 + In rigctl mode we only accept band/freq selection and rx/tx via rigctl. You can control the rig itself in this mode via http/mqtt/serial. Server connection must succeed for this mode to activate.
 + In none mode then no control is possible
   
-You can set `hybrid` to `true` which will use the control cable for PTT in every mode.
+You can set `hybrid` to `true` which will use the state of pin `D3` for PTT in every mode.
 
 If MQTT is disabled and the mode is changed to MQTT then it will be automatically enabled.
 
