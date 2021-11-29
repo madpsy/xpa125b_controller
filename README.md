@@ -411,7 +411,7 @@ This works for both band selection and PTT. You may wish to use `hybrid` mode fo
   
 ## Serial
 
-The Hermes-Lite 2 has a UART interface which can be connected to the D1 Mini and used to read the current frequency. There is no need to reduce the voltage unless the Hermes-Lite has the DB9 modification with 5V TTL.
+The Hermes-Lite 2 has a UART interface on the DB1 connector located at the front of the main board. It can be connected to the D1 Mini and used to read the current frequency. There is no need to reduce the voltage unless the Hermes-Lite has the DB9 modification with 5V TTL.
   
 Assuming you are connecting directly to the main board in the Hermes:
   
