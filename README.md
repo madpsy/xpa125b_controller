@@ -446,12 +446,12 @@ One suggestion is using stereo 3.5mm chassis mounts on both the Hermes-Lite 2 an
   
 # MQTT
 
-As well as allowing control of the amplifier by publishing MQTT events the system is always updating current state to MQTT. You can use this feature to act as a bridge between Rigctl and MQTT even when no amplifier is involved. To do this:
+As well as allowing control of the amplifier by publishing MQTT events the system is always updating current state to MQTT. You can use this feature to act as a bridge between Rigctl and MQTT. To do this:
   
   1. Configure MQTT server/username/password in the config (ensure `mqtt_enabled` is `true`)
   2. Configure Rigctl settings in the config and optionally make it the default mode
   
-Now every state change will be published as an event to MQTT to be consumed by other software, such as Node-RED (https://nodered.org/) to trigger other actions. You could go wild and use this to have a big LED matrix display showing the current frequency and PTT state.
+Now every state change will be published as an event to MQTT to be consumed by other software, such as Node-RED (https://nodered.org/) to trigger other actions. You could use this to build a big LED matrix display showing the current frequency and PTT state. This also works with Home Assistant (see below).
   
 # Web Interface
   
