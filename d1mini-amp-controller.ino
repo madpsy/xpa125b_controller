@@ -1045,7 +1045,7 @@ void setFreq(String freq) {
     setBand("12");
    } else if (regexMatch(charFreq, "^27......$")) {
     setBand("11");
-   } else if (regexMatch(charFreq, "^28......$")) {
+   } else if (regexMatch(charFreq, "^2[8,9]......$")) {
     setBand("10");
    } else if (regexMatch(charFreq, "^5.......$")) {
     setBand("6");
