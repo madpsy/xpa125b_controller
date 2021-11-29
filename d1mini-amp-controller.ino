@@ -1273,14 +1273,15 @@ void processSerial(String serialValue) {
 
 void setup(void) {
 
+  Serial.begin(serial_baud);
+  
+  delay(500); // computer serial port takes time to be available after reset
+  
   if ((use_bluetooth_serial == true) && (hc_05_enabled = true)) {
     BTserial.begin(hc_05_baud);
     Serial.println("Using bluetooth for serial - check there instead");
   }
-
-  Serial.begin(serial_baud);
   
-  delay(500); // computer serial port takes time to be available after reset
   serialPrintln("XPA125B controller started");
   
   if (wifi_enabled == true) {
