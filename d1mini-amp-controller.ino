@@ -1,7 +1,7 @@
 // *********** START CONFIG ***********
 
 // Serial - baud rate for internal serial port and state if we should use the bluetooth module (hc-05) for normal serial use
-// Must also set hc_05_enabled for bluetooth serial mode.
+// Must also set hc_05_enabled to true for bluetooth serial mode.
 // Ensure newline is set to 'CR+LF' in the serial software
 int serial_baud = 115200;
 bool use_bluetooth_serial = false;
@@ -36,19 +36,19 @@ int debounce_delay = 0;
 // set hc_05_program to true 
 // hold the button on the module for 2 seconds when applying power
 // programming mode can also be used as an echo test
-// Set line ending to NL & CR
+// Set line ending to both NL & CR
 // Sending 'AT' via the D1's serial should respond with 'OK'
 // AT+NAME:XPA125B
 // AT+PSWD:"6245"
 // AT+UART:9600,0,0
 bool hc_05_enabled = false;
 bool hc_05_program = false;
-int hc_05_baud = 38400;
+int hc_05_baud = 9600;
 
 // enable MAX3232 (required for Elecraft radio or Hardrock-50 amplifier)
 bool max3232_enabled = false;
 bool max3232_debug = false;
-int max3232_baud = 38400;
+int max3232_baud = 9600;
 int max3232_timeout = 100;
 
 // enable hermes-lite UART
@@ -834,6 +834,9 @@ void setMode(String value) {
     mode.toCharArray(charMode, 9);
     serialPrint("mode ");
     serialPrintln(mode);
+    if (hybrid == true) {
+      serialPrintln("hybrid mode for PTT is enabled");
+    }
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/mode", charMode, true);
     if ((mode == "mqtt") && (mqtt_enabled == 0)) {
       setMQTT("enable");
@@ -1281,9 +1284,11 @@ void setup(void) {
   
   delay(500); // computer serial port takes time to be available after reset
 
-  if (hc_05_enabled == true && use_bluetooth_serial == true) {
+  if (hc_05_enabled == true && hc_05_program == false  && use_bluetooth_serial == true) {
     BTserial.begin(hc_05_baud);
     Serial.println("**** Using HC-05 for serial - check there instead ****");
+    Serial.print("HC-05 enabled at baud rate ");
+    Serial.println(hc_05_baud);
     BTserial.println("**** Using HC-05 for serial ****");
   }
   
@@ -1293,15 +1298,15 @@ void setup(void) {
     wifi("enable");
   }
 
-  setupAmplifier(amplifier);
-
   if (hc_05_enabled == true && use_bluetooth_serial == false) {
     if (hc_05_program == true) {
       BTserial.begin(38400);
+      Serial.println("**** HC-05 is in programming mode ****");
     } else {
       BTserial.begin(hc_05_baud);
+      Serial.print("HC-05 enabled at baud rate ");
+      Serial.println(hc_05_baud);
     }  
-    serialPrintln("HC-05 enabled");
   }
 
   if (hybrid == true) {
@@ -1309,6 +1314,8 @@ void setup(void) {
   } else {
     serialPrintln("Hybrid mode is disabled");
   }
+
+  setupAmplifier(amplifier);
   
   // set to 160m and 0Hz by default
   setBand("160");
@@ -1505,7 +1512,10 @@ void setup(void) {
 
   server.onNotFound(handleNotFound);
 
-  webServer(true);
+  if (wifi_enabled == true) {
+    webServer(true);
+  }
+  
   setMode(default_mode);
   serialPrint("band ");
   serialPrintln(current_band);
@@ -1683,11 +1693,8 @@ void loop(void) {
 
   if (hc_05_program == true) {
     while (BTserial.available()) {
-       //String BTserial = Serial.readStringUntil(serialEOL);
        int value = BTserial.read();
-       Serial.println("reading from hc_05");
        Serial.write(value);
-       //serialPrint(BTserial);
     }
   }
 
