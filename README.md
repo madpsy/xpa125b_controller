@@ -18,7 +18,7 @@ Designed and written for a D1 Mini microcontroller using the Arduino IDE.
 + SparkSDR
 + Rigctld (any Hamlib compatible rig)
 
-Rigctld support is the major feature which allows this to work with almost any radio, including SDRs such as the Flex 1500/3000 and ANAN based radios.
+Built in `rigctl` support is the feature which allows this to work with almost any radio, including SDRs, such as Flex 1500/3000, ANAN and ELAD as well as anything in the Hamlib compatibility list. In addition, some software such as SDR Console, provide a CAT emulation layer, usually using the TS-2000 protocol.
 
 # Supported Amplifiers:
 
