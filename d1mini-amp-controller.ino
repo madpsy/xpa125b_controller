@@ -27,7 +27,7 @@ char* icom_interface = "hc_05";
 bool hybrid = false;
 
 // milliseconds of debounce for analog PTT
-int debounceDelay = 0;
+int debounce_delay = 0;
 
 // enable bluetooth (required for Icom).
 // To program the HC-05, set hc_05_program to true and hold the button on the module for 2 seconds when applying power
@@ -46,6 +46,9 @@ bool max3232_enabled = false;
 bool max3232_debug = false;
 int max3232_baud = 38400;
 int max3232_timeout = 100;
+
+// enable hermes-lite UART
+bool hermes_enabled = false;
 
 // amplifier type
 const char* amplifier = "xpa125b";
@@ -82,16 +85,15 @@ int ptt_pin = D1;
 int band_pin = D2;
 int tx_pin = D3;
 int yaesu_band_pin = A0;
-// serial adapters - use either an hc-05 for the IC-705 or a MAX3232 for Elecraft radio/Hardrock-50 amp - both share the same pins
-// bluetooth - tx pin overlaps with SunSDR/Yaesu so you can either use bluetooth (for Icom-705) or SunSDR/Yaesu
+// hc_05 pins
 int hc05_txd_pin = D4;
 int hc05_rxd_pin = D5;
-// MAX3232 - tx pin overlaps with SunSDR/Yaesu so you can either use MAX3232 (for Elecraft radio / Hardrock-50 amp) or SunSDR/Yaesu
-int max3232_txd_pin = D4;
-int max3232_rxd_pin = D5;
+// max3232 pins
+int max3232_txd_pin = D6;
+int max3232_rxd_pin = D7;
 // Hermes-Lite
-int hermes_txd_pin = D4;
-int hermes_rxd_pin = D5;
+int hermes_txd_pin = D6;
+int hermes_rxd_pin = D7;
 // SunSDR EXT CTRL and Yaesu Band Data - requires level converter 5VDC to 3V3
 // X8 on the SunSDR and 'TX GND' on Yaesu (LINEAR mode) is PTT (no need for level converter)
 int band_data_1 = D5;
@@ -122,7 +124,7 @@ unsigned long bt_kHz = 0;
 unsigned long bt_MHz = 0;
 unsigned long bt_Hz = 0;
 String bt_freq;
-unsigned long lastDebounceTime = 0;
+unsigned long last_debounce_time = 0;
 unsigned long current_tx_millis = 0;
 unsigned long previous_tx_millis = 0;
 unsigned long current_block_millis = 0;
@@ -307,7 +309,7 @@ void handleNotFound() {
 }
 
 bool setupBandData() {
-  if (hc_05_enabled == false) {
+  if (hc_05_enabled == false && max3232_enabled == false && hermes_enabled == false) {
     pinMode(band_data_1,INPUT);
     pinMode(band_data_1,INPUT);
     pinMode(band_data_1,INPUT);
@@ -315,13 +317,13 @@ bool setupBandData() {
     serialPrintln("Band data pins configured");
     return true;
   } else {
-    serialPrintln("Cannot setup band data when bluetooth is snabled as the TX pin overlaps");
+    serialPrintln("Cannot setup band data any other serial based device is enabled");
     return false;
   }
 }
 
 bool setupMAX3232() {
-  if (hc_05_enabled == false) {
+  if (hermes_enabled == false) {
     if (max3232_enabled == true) {
       MAX3232.begin(max3232_baud);
       serialPrint("MAX3232 configured at baudrate ");
@@ -332,7 +334,7 @@ bool setupMAX3232() {
       return false;
     }
   } else {
-    serialPrintln("Cannot setup MAX3232 when bluetooth is enabled as the TX pin overlaps");
+    serialPrintln("Cannot setup MAX3232 when Hermes is enabled");
     return false;
   }
 }
@@ -360,15 +362,12 @@ bool setupAmplifier(String value) {
 }
 
 bool setupHermes() {
-  if (hc_05_enabled == false && max3232_enabled == false) {
-    pinMode(hermes_txd_pin, INPUT_PULLUP);
-    // might not be neccessary?
-    //pinMode(hermes_rxd_pin, INPUT_PULLUP);
+  if (hermes_enabled == true && max3232_enabled == false) {
     Hermes.begin(9600);
     serialPrintln("Hermes-Lite configured");
     return true;
   } else {
-    serialPrintln("Cannot enable Hermes if hc_05 or max3232 are enabled");
+    serialPrintln("Error: Hermes is not enabled and/or max3232 is enabled");
     return false;
   }
 }
@@ -1052,12 +1051,12 @@ void setFreq(String freq) {
 }
 
 void setState(String state) {
-  if ((millis() - lastDebounceTime) > debounceDelay) {
+  if ((millis() - last_debounce_time) > debounce_delay) {
     if ( state == "rx" ) {
       current_state = 0;
       curState = "rx";
       if (current_state != previous_state) {
-       lastDebounceTime = millis();
+       last_debounce_time = millis();
        digitalWrite(ptt_pin, LOW);
        serialPrintln("state rx");
        if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "rx");
@@ -1069,7 +1068,7 @@ void setState(String state) {
      current_state = 1;
      curState = "tx";
      if (current_state != previous_state) {
-       lastDebounceTime = millis();
+       last_debounce_time = millis();
        digitalWrite(ptt_pin, HIGH);
        serialPrintln("state tx");
        if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
