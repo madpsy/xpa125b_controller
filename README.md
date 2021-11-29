@@ -427,7 +427,7 @@ Next, in the controller configuration, ensure:
 2) `max3232_enabled` is `false`
 4) `mode` is set to `hermes`
   
-Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the TX RCA socket to `D3` on the D1 Mini. Also ensure grounds are tied between the radio and the controller.
+Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the EXTTR RCA to `D3` on the D1 Mini. Also ensure grounds are tied between the radio and the controller.
   
 # MQTT
 
