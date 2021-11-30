@@ -318,8 +318,11 @@ Most Yaesu radios (except the 817/818 - see below) use a similar method to SunSD
 
 Because the voltage on the pins are 5VDC we need to level shift them down to 3V3 so as not to damage the D1 Mini. An Arduino is 5VDC logic level so doesn't require such shifting. You only need to shift the band pins so a 4 way logic level shifter is perfect.
   
-1. Wire up the ACC port using the Band pins (as described in the `Logic Level Shifter` section) and TX GND pin.
+1. Wire the radio's ACC port Band pins (as described in the `Logic Level Shifter` section)
+2. Wire the radio's ACC port TX GND pin to `D3` on the D1 Mini
 2. Configure the controller with `mode = "yaesu"` and ensure `hl_05_enabled = false` (no other config needed)
+  
+Note: Ensure grounds are also tied between the radio and the D1 Mini.
 
 You can still enable WiFi and/or MQTT with this mode if desired. This allows you to have access to the other APIs and web interface aswel as push MQTT events but have control entirely handled locally.
   
@@ -330,6 +333,8 @@ The Yaesu 817 & 818 radios use a different method for band selection. They have 
 1. Wire the radio's ACC port Band pin to `A0` on the D1 Mini
 2. Wire the radio's ACC port TX GND pin to `D3` on the D1 Mini
 2. Configure the controller with `mode = "yaesu817"` (no other config needed)
+  
+Note: Ensure grounds are also tied between the radio and the D1 Mini.
 
 # Icom IC-705
 
