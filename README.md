@@ -371,7 +371,7 @@ To solve the lack of band selection you can utilise `rigctld` running on a compu
   6. In a terminal: `rigctld -r <path to radio serial device> -m 3085 -t 51111`
   7. In a terminal: `./amp_serial_control.sh localhost 51111 <path to controller serial device>`
 
-That's it - you now have PTT and automatic band selection. For other software, such as WSJX-T, which needs control of the radio you can use `Hamlib` as the radio type and point it at rigctld using `localhost` port `51111`.
+That's it - you now have PTT and automatic band selection. For other software, such as WSJX-T, which needs control of the radio you can use `Hamlib` as the radio type and point it at rigctld using `localhost` port `51111`. This method can also be used with the `HC-05` module as explained in the `Bluetooth Serial Console` section.
 
 # Icom 703 / Xiegu G90
   
