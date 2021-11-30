@@ -279,7 +279,7 @@ The amplifier will now work with both PTT and automatic band selection.
   
 # Hardrock-50
 
-## Serial mode
+## Hardrock Serial mode
   
 To use this amplifier in serial mode you need a MAX3232 connected to the controller - see the MAX3232 section above for more information. Then connect the following:
   
@@ -295,7 +295,7 @@ In the controller configuration:
 
 Finally, in the Hardrock-50's menu, set `ACC Baud Rate` to `9600`
   
-## Yaesu 817/818 mode
+## Hardrock Yaesu 817 mode
   
 The Hardrock-50 also supports band selection via stepped voltage, the same as the MiniPA50. Connect the following:
   
