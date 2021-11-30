@@ -351,7 +351,7 @@ The preferred method of interfacing the controller with an IC-705 is to use the 
   
 ## Solution 2
   
-This solution requires no cabling between the radio and the amplifier - you just need the controller and a computer. This works with any Hamlib supported radio including other Icoms and Kenwood, Yaesu etc.
+This solution just needs the controller and a computer. It works with any Hamlib supported radio including other Icoms and Kenwood etc.
 
 To solve the lack of band selection you can utilise `rigctld` running on a computer. Most stations have a computer of some kind for logging etc so this feels an adequate solution. You can use either the built in `rigctl` mode or run the controller over serial using the method in the `Serial Example` secion below.
 
