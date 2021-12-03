@@ -73,6 +73,7 @@ int tx_block_time = 60; // 60 = 1 minute
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
+#include <NTPClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <PubSubClient.h>
@@ -80,7 +81,8 @@ int tx_block_time = 60; // 60 = 1 minute
 #include <SoftwareSerial.h>
 
 ESP8266WebServer server(80);
-
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
 WiFiClient mqttClient;
 WiFiClient rigctlClient;
 PubSubClient pubsubClient;
@@ -247,6 +249,7 @@ char* MAX3232serialRead(char term_char) {
     message_pos = 0;
     if(isAlpha(message[0])) {
       if (max3232_debug == true) {
+        serialPrintTime();
         serialPrint(message);
         serialPrintln("");
       }
@@ -275,9 +278,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void webServer(bool value) {
   if (value == true) {
     server.begin();
+    serialPrintTime();
     serialPrintln("HTTP server started");
   } else {
     server.stop();
+    serialPrintTime();
     serialPrintln("HTTP server stopped");
   }
 }
@@ -289,8 +294,10 @@ void mqttConnect() {
   // pubsubClient.connected condition here prevents a crash which can happen if already connected
   if (((mqtt_enabled == true) && (!pubsubClient.connected()) && (WiFi.status() == WL_CONNECTED))) {
     delay(100); // stops it trying to reconnect as fast as the loop can go
+    serialPrintTime();
     serialPrintln("Attempting MQTT connection");
     if (pubsubClient.connect("xpa125b", mqttuser, mqttpass)) {
+      serialPrintTime();
       serialPrintln("MQTT connected"); 
       pubsubClient.subscribe("xpa125b/#");
     }
@@ -318,10 +325,12 @@ bool setupBandData() {
     pinMode(band_data_1,INPUT);
     pinMode(band_data_1,INPUT);
     pinMode(band_data_1,INPUT);
+    serialPrintTime();
     serialPrintln("Band data pins configured");
     return true;
   } else {
-    serialPrintln("Cannot setup band data any other serial based device is enabled");
+    serialPrintTime();
+    serialPrintln("Cannot setup band data when any other serial based device is enabled");
     return false;
   }
 }
@@ -330,14 +339,17 @@ bool setupMAX3232() {
   if (hermes_enabled == false) {
     if (max3232_enabled == true) {
       MAX3232.begin(max3232_baud);
+      serialPrintTime();
       serialPrint("MAX3232 configured at baudrate ");
       serialPrintln(max3232_baud);
       return true;
     } else {
+      serialPrintTime();
       serialPrintln("You must set max3232_enabled to true");
       return false;
     }
   } else {
+    serialPrintTime();
     serialPrintln("Cannot setup MAX3232 when Hermes is enabled");
     return false;
   }
@@ -346,19 +358,23 @@ bool setupMAX3232() {
 bool setupAmplifier(String value) {
   if (value == "xpa125b") {
     amplifier = "xpa125b";
+    serialPrintTime();
     serialPrintln("Amplifier set to xpa125b");
     return true;
   } else if (value == "minipa50") {
     amplifier = "xpa125b";
+    serialPrintTime();
     serialPrintln("Amplifier set to xpa125b");
     return true;
   } else if (value == "hardrock50") {
     if (setupMAX3232()) {
       amplifier = "hardrock50";
+      serialPrintTime();
       serialPrintln("Amplifier set to hardrock50");
       return true;
     } else {
       amplifier = "none";
+      serialPrintTime();
       serialPrintln("Failed to set amplifier set to hardrock50");
       return false;
     }
@@ -368,9 +384,11 @@ bool setupAmplifier(String value) {
 bool setupHermes() {
   if (hermes_enabled == true && max3232_enabled == false) {
     Hermes.begin(9600);
+    serialPrintTime();
     serialPrintln("Hermes-Lite configured");
     return true;
   } else {
+    serialPrintTime();
     serialPrintln("Error: Hermes is not enabled and/or max3232 is enabled");
     return false;
   }
@@ -434,6 +452,7 @@ void setRigctlAddress(String address) {
   rigctl_address = address;
   rigctl_address_set = true;
   rigctl_ipaddress.fromString(address);
+  serialPrintTime();
   serialPrint("rigctl_address ");
   serialPrintln(rigctl_address);
 }
@@ -442,6 +461,7 @@ void setRigctlPort(String port) {
   rigctl_port = port;
   rigctl_port_set = true;
   rigctl_portnumber = port.toInt();
+  serialPrintTime();
   serialPrint("rigctl_port ");
   serialPrintln(rigctl_port);
 }
@@ -450,10 +470,12 @@ bool testRigctlServer() {
   if (((wifi_enabled == true) && (rigctl_address_set) && (rigctl_port_set))) {
    if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
     if ((sendRigctlCommand("t") == "0") || (sendRigctlCommand("t") == "1")) {
+      serialPrintTime();
       serialPrint("Connection to rigctl server succeeded ");
       serialPrintln(rigctl_address + ":" + rigctl_port);
       return true;
     } else {
+      serialPrintTime();
       serialPrint("connection to rigctl succeeded but PTT status failed to return ");
       serialPrintln(rigctl_address + ":" + rigctl_port);
       if (mode == "rigctl") {
@@ -463,6 +485,7 @@ bool testRigctlServer() {
     }
     rigctlClient.stop();
    } else {
+    serialPrintTime();
     serialPrint("connection to rigctl server failed ");
     serialPrintln(rigctl_address + ":" + rigctl_port);
     if (mode == "rigctl") {
@@ -471,6 +494,7 @@ bool testRigctlServer() {
     return false;
    }
   } else {
+    serialPrintTime();
     serialPrintln("rigctl server not set");
     return false;
   }
@@ -481,14 +505,17 @@ bool connectRigctl() {
     //serialPrintln("connecting to rigctl");
     if (rigctlClient.connect(rigctl_ipaddress, rigctl_portnumber)) {
       if (rigctl_debug) {
+        serialPrintTime();
         serialPrintln("rigctl connection success");
       }
       return true;
     } else {
+      serialPrintTime();
       serialPrintln("rigctl connection failed");
       return false;
     }
   } else {
+    serialPrintTime();
     serialPrintln("wifi disabled or rigctl address and port not set");
     return false;
   }
@@ -509,6 +536,7 @@ String sendRigctlCommand(char* command) {
           // iteration, causing e.g. the ptt status to be concatenated with the frequency
           // set rigctl_debug to true if rigctl appears to be doing nothing yet the connection test claims success
           if (rigctl_debug) {
+            serialPrintTime();
             serialPrintln("rigctl timed out"); 
           }
           rigctlClient.stop();
@@ -539,6 +567,7 @@ String sendRigctlCommand(char* command) {
 }
 
 void setRigctlFreq(String frequency) {
+     serialPrintTime();
      serialPrint("rigctlfreq: ");
      serialPrintln(frequency);
      String cmd  = "F "; cmd += (frequency);
@@ -558,6 +587,7 @@ void setRigMode(String rigmode) {
        char modeChar[20];
        current_rig_mode.toCharArray(modeChar, 20);
        if (pubsubClient.connected()) pubsubClient.publish("xpa125b/rigmode", modeChar, true);
+       serialPrintTime();
        serialPrint("rigmode ");
        serialPrintln(current_rig_mode);
        previous_rig_mode = rigmode;
@@ -585,6 +615,7 @@ void setRigctlPtt(String ptt) {
   if ((ptt != "0") && (tx_block_timer != 0)) {
      return;
   } else {
+     serialPrintTime();
      serialPrint("rigctlptt: ");
      serialPrintln(ptt);
      String cmd  = "T "; cmd += (ptt);
@@ -686,7 +717,7 @@ void handleRoot() {
   message += "Last Response: ";
   message += "<iframe name='response' id='response' scrolling='no' frameBorder='0' width=400 height=25></iframe></br>";
   message += "Current State: ";
-  message += "<iframe src='/status' scrolling='no' frameBorder='0' width=700 height=25></iframe>";
+  message += "<iframe src='/status' scrolling='no' frameBorder='0' width=1000 height=25></iframe>";
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
   message += "serialonly [true|false] (disables yaesu and wifi entirely)</br>";
@@ -712,6 +743,7 @@ void handleRoot() {
   message += "/setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
   message += "/setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP GET paths:</br></br>";
+  message += "<a href='/time'>/time</a> (show controller time)</br>";
   message += "<a href='/mode'>/mode</a> (show current mode)</br>";
   message += "<a href='/state'>/state</a> (show current state)</br>";
   message += "<a href='/band'>/band</a> (show current band)</br>";
@@ -760,7 +792,9 @@ void handleRoot() {
 
 void getStatus() {
   String message = "<html><head><meta http-equiv='refresh' content='1'></head><body>";
-  message += "Mode: ";
+  message += "Time: ";
+  message += timeClient.getFormattedTime();
+  message += "&nbsp Mode: ";
   message += mode;
   message += "&nbsp Band: ";
   message += curBand;
@@ -832,6 +866,7 @@ void setMode(String value) {
     //previous_frequency = "0";
     char charMode[9];
     mode.toCharArray(charMode, 9);
+    serialPrintTime();
     serialPrint("mode ");
     serialPrintln(mode);
     if (hybrid == true) {
@@ -954,6 +989,7 @@ void setBand(String band) {
     }
     current_band = bandInt;
     if ( current_band != previous_band ) {
+      serialPrintTime();
       serialPrint("band ");
       serialPrintln(bandChar);
       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/band", bandChar, true);
@@ -1021,6 +1057,7 @@ void setFreq(String freq) {
    int freqInt = frequency.toInt();
    freq.toCharArray(charFreq, 10);
    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/frequency", charFreq, false);
+   serialPrintTime();
    serialPrint("frequency ");
    serialPrintln(frequency);
    if (regexMatch(charFreq, "^1......$")) {
@@ -1050,6 +1087,7 @@ void setFreq(String freq) {
    } else if (regexMatch(charFreq, "^5.......$")) {
     setBand("6");
    } else {
+    serialPrintTime();
     serialPrint("No matching band found for ");
     serialPrintln(frequency);
    }
@@ -1065,6 +1103,7 @@ void setState(String state) {
       if (current_state != previous_state) {
        last_debounce_time = millis();
        digitalWrite(ptt_pin, LOW);
+       serialPrintTime();
        serialPrintln("state rx");
        if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "rx");
       }
@@ -1077,6 +1116,7 @@ void setState(String state) {
      if (current_state != previous_state) {
        last_debounce_time = millis();
        digitalWrite(ptt_pin, HIGH);
+       serialPrintTime();
        serialPrintln("state tx");
        if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
      }
@@ -1089,10 +1129,12 @@ void setMQTT(String value) {
   if (value == "enable") {
     mqtt_enabled = true;
     mqttConnect;
+    serialPrintTime();
     serialPrintln("MQTT enabled");
   } else if (value == "disable") {
     mqtt_enabled = false;
     pubsubClient.disconnect();
+    serialPrintTime();
     serialPrintln("MQTT disabled");
   }
 }
@@ -1123,6 +1165,7 @@ void wifi(String state) {
     WiFi.hostname("xpa125b");
     WiFi.begin(ssid, password);
     int count = 0;
+    serialPrintTime();
     while ((WiFi.status() != WL_CONNECTED) && (count < 20)) {
       delay(500);
       serialPrint(".");
@@ -1130,28 +1173,52 @@ void wifi(String state) {
     }
     if (WiFi.status() == WL_CONNECTED) {
       serialPrintln("");
+      serialPrintTime();
       serialPrint("Connected to ");
       serialPrintln(WiFi.SSID());
+      serialPrintTime();
       serialPrint("RSSI ");
       serialPrintln(WiFi.RSSI());
+      serialPrintTime();
       serialPrint("IP address: ");
       serialPrintln(WiFi.localIP());
+      serialPrintTime();
       serialPrint("DNS address: ");
       serialPrintln(WiFi.dnsIP());
+      serialPrintTime();
       serialPrint("Gateway: ");
       serialPrintln(WiFi.gatewayIP());
+      serialPrintTime();
       serialPrint("MAC address: ");
       serialPrintln(WiFi.macAddress());
       if (MDNS.begin("xpa125b")) {
+        serialPrintTime();
         serialPrintln("MDNS responder started as xpa125b[.local]");
       }
+      timeClient.begin();
+      serialPrintTime();
+      serialPrintln("NTP client started");
       mqttConnect();
     } else {
+      serialPrintTime();
       serialPrintln("\nWiFi failed to connect");;
     }
   } else if ((state == "disable") && (WiFi.status() != WL_DISCONNECTED)) {
     WiFi.mode(WIFI_OFF);
+    serialPrintTime();
     serialPrintln("WiFi disabled");
+  }
+}
+
+void serialPrintTime() {
+  if (use_bluetooth_serial == true) {
+    BTserial.print("[");
+    BTserial.print(timeClient.getFormattedTime());
+    BTserial.print("] ");
+  } else {
+    Serial.print("[");
+    Serial.print(timeClient.getFormattedTime());
+    Serial.print("] ");
   }
 }
 
@@ -1265,6 +1332,7 @@ void processSerial(String serialValue) {
    } else if (command == "setrigctl") {
     setRigctlAddress(getValue(serialValue,' ',1));
     setRigctlPort(getValue(serialValue,' ',2));
+    serialPrintTime();
     serialPrintln("rigctl_server " + getRigctlServer());
    } else if (command == "serialonly") {
      if (value == "true") {
@@ -1291,7 +1359,7 @@ void setup(void) {
     Serial.println(hc_05_baud);
     BTserial.println("**** Using HC-05 for serial ****");
   }
-  
+  serialPrintTime();
   serialPrintln("XPA125B controller started");
   
   if (wifi_enabled == true) {
@@ -1310,8 +1378,10 @@ void setup(void) {
   }
 
   if (hybrid == true) {
+    serialPrintTime();
     serialPrintln("Hybrid mode is enabled");
   } else {
+    serialPrintTime();
     serialPrintln("Hybrid mode is disabled");
   }
 
@@ -1380,6 +1450,11 @@ void setup(void) {
 
   server.on("/mqtt", [] () {
        String value = (mqtt_enabled ? "enabled" : "disabled");
+       server.send(200, "text/html; charset=UTF-8", value);
+  });
+
+  server.on("/time", [] () {
+       String value = timeClient.getFormattedTime();
        server.send(200, "text/html; charset=UTF-8", value);
   });
 
@@ -1517,10 +1592,13 @@ void setup(void) {
   }
   
   setMode(default_mode);
+  serialPrintTime();
   serialPrint("band ");
   serialPrintln(current_band);
+  serialPrintTime();
   serialPrint("frequency ");
   serialPrintln(frequency);
+  serialPrintTime();
   serialPrint("state ");
   serialPrintln(current_state);
 }
@@ -1535,6 +1613,7 @@ void loop(void) {
    
   server.handleClient();
   MDNS.update();
+  timeClient.update();
 
   mqttConnect();
   pubsubClient.loop();
@@ -1614,6 +1693,7 @@ void loop(void) {
     String strSeconds = String(tx_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txtime", charSeconds, false);
+    serialPrintTime();
     serialPrint("txtime ");
     serialPrintln(charSeconds);
     tx_previous_seconds=second;
@@ -1629,6 +1709,7 @@ void loop(void) {
  }
 
  if ( tx_seconds >= tx_limit ) {
+  serialPrintTime();
   serialPrintln("txblocktimer start");
   setState("rx");
   if (mode == "rigctl") {
@@ -1650,6 +1731,7 @@ void loop(void) {
     String strSeconds = String(tx_block_seconds_true);
     strSeconds.toCharArray(charSeconds, 4);
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/txblocktimer", charSeconds, false);
+    serialPrintTime();
     serialPrint("txblocktimer ");
     serialPrintln(charSeconds);
     if ( tx_block_timer == 0 ) {
