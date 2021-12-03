@@ -504,7 +504,7 @@ Note: When you use `setfreq` the system will translate this into a band automati
 
 # Valid HTTP GET paths:
 
-+ /time (show controller time)
++ /time (show controller NTP time)
 + /mode (show current mode)
 + /state (show current PTT state)
 + /band (show current band)
