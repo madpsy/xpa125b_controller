@@ -219,8 +219,8 @@ It is recommend to use this feature if your radio supports it. There is an optio
   
 There are two main advantages to this method:
   
-1. Reliability - you could argue this analog approach is more reliable than requesting state via a communications protocol
-2. Latency - because this method uses an interrupt in the controller it will always be quicker to react
+1. Reliability - you could argue this analog approach is more reliable than polling state
+2. Latency - because this method uses an interrupt in the controller it will always be quicker to react. This includes prioritising over, for example, a WiFi reconnect event.
   
 To enable this mode simply set the following in the controller configuration:
   
