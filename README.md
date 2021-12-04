@@ -198,6 +198,12 @@ The top of the file contains config options which need set first:
 + `ssid` - your WiFi SSID
 + `password` - your WiFi password
 
+Also set NTP details:
+
++ `ntp_server` - set to `pool.ntp.org` if unsure
++ `ntp_offset` - number of seconds to offset the displayed time by
++ `ntp_interval` - update interval in milliseconds
+
 If you want to enable MQTT set the following:
 
 + `mqtt_enabled` = true
