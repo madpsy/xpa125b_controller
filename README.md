@@ -93,7 +93,7 @@ There is built in debounce logic which you can enable if your radio uses a relay
 
 1. Set `debounce_delay` to some value > `0` in milliseconds
 
-If you set this to a value and notice PTT no longer works try increasing the value until it does. I've found `10` works well but you may need to experiment.
+If you set this to a low value and notice PTT no longer works try increasing the value until it does. I've found `10` works well but you may need to experiment. If even after setting a suitable debounce value you find PTT randomly oscilates at higher output powers the chances are there is a grounding issue. Ensure all grounds are at the same potential to prevent this. 
 
 ## RC Filter
 
