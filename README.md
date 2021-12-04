@@ -314,6 +314,8 @@ The Hardrock-50 also supports band selection via stepped voltage, the same as th
 1. Pin 4 of the ACC socket on the amp to the collector of the 2N2222 transistor
 2. Pin 2 of the ACC socket on the amp to the output of the RC filter
   
+Note: Ensure grounds are also tied between the amplifier and the D1 Mini.
+  
 In the controller configuration:
 
 1. Set `amplifier` to `minipa50`
