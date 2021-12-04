@@ -599,7 +599,10 @@ Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following
 `cat /dev/rfcomm0`
 
 Windows supports Bluetooth serial devices too (not sure about Mac) and there are even mobile phone apps available, such as `Serial Bluetooth Terminal` by Kai Morich for Android. If using that app I've found setting 'newline' to 'CR+LF' for both Send and Recieve works well.
-
+  
+Output from serial looks like this:
+  
+![serial](images/serial_out.png)
   
 # TX Block
   
