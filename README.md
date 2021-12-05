@@ -69,6 +69,10 @@ Total cost of parts for this project is under £30/$40
 
 # Schematic
 
+## Power
+
+You can power the D1 Mini either via the USB port (which is also its serial port) or directly via the `5V` and `GND` pins with a regulated supply. You may, for example, prefer to power it directly via a buck converter and use the same power supply as the radio and amplifier. This way there is no physical connection to a potentially RF noisy computer or SMPS. The serial interface can still be accessed without USB by using an `hc-05` or `MAX3232` either plugged into the `rx` and `tx` pins or by using the bluetooth software serial option (refer to the `Bluetooth Serial Console` section).
+
 ## PTT Trigger
 
 The PTT trigger is connected to the amplifier's PTT detect pin and is responsible for putting the amplifier into TX state. I suggest using a 2N222 transistor for this purpose. The value of the resistor isn't too critical in this application.
