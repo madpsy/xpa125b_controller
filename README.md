@@ -163,7 +163,7 @@ Before applying power to the D1 mini, hold the button on the HC-05, apply power,
 5. Send `AT+PSWD:"6245"` - this sets the PIN to 6245 (just an example)
 6. Send `AT+UART:9600,0,0` - this will make the default baud rate `9600`
 
-Note: In AT command mode the HC-05 expects a baud rate of `38400` so the controller automatically uses this rate in programming mode. I've found using a lower baud rate works best for normal operation but you should experiment.
+Note: In AT command mode the HC-05 expects a baud rate of `38400` so the controller automatically uses this rate in programming mode. I've found using a lower baud rate works best for normal operation but you can experiment. As this is using a software serial library it can have issues at higher rates. I'm not sure if it's an issue specific to the D1 Mini but I've certainly seen corruption occur when pushing the rate up.
 
 That's the programming done so disable programming mode on the controller:
 
@@ -179,6 +179,8 @@ You can also attach an additional `hc-05` (bluetooth) or `MAX3232` (RS232) direc
 
 1. Set `serial_baud` to match the hc-05 or computer/device
 2. Set `use_bluetooth_serial` to `false`
+
+Note: The baud rate will be the same for both the onboard USB port and the hc-05/max3232. I suggest using `115200` as unlike the software serial option this is done in hardware so high baud rates are fine. For the hc-05 you can set this with the AT command from above.
 
 Now you could, for example, use an Icom IC-705 via bluetooth with one hc-05 and also have the standard serial port available over bluetooth using the second hc-05.
 
