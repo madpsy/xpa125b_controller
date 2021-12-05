@@ -171,12 +171,12 @@ The LED should start blinking fast and is waiting for a client connection. See t
 
 # HC-05/MAX3232 Direct Serial
 
-You could also attach an additional `hc-05` or `MAX3232` directly the to the `rx` and `tx` pins on the D1 Mini. This is the same as using the built in USB serial port so you could program the D1 Mini through this interface too. For this option, in the configuration, you would:
+You can also attach an additional `hc-05` (bluetooth) or `MAX3232` (RS232) directly the to the `rx` and `tx` pins on the D1 Mini. This is the same as using the built in USB serial port. For this option, in the configuration, you would:
 
-1. Set `serial_baud` to match the hc-05 or computer
+1. Set `serial_baud` to match the hc-05 or computer/device
 2. Set `use_bluetooth_serial` to `false`
 
-Now you could, for example, use an Icom IC-705 via bluetooth with one hc-05 and still have serial over bluetooth available using a second hc-05.
+Now you could, for example, use an Icom IC-705 via bluetooth with one hc-05 and also have the standard serial port available over bluetooth using the second hc-05.
 
 # MAX3232
 
