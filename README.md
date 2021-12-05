@@ -626,6 +626,10 @@ Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following
 `./amp_serial_control.sh localhost 51111 /dev/rfcomm0`
 
 `cat /dev/rfcomm0`
+  
+Note: Because of the way rfcomm works it will only connect to the hc-05 when the serial port is accessed by something. This means it has to make the connection each time you send a command, therefore behaves quite slow. The way around this is to always have something reading from the port - such as the `cat` command above. You could add this before the `while` loop in the script:
+  
+ `cat $TTY >/dev/null &`
 
 Windows supports Bluetooth serial devices too (not sure about Mac) and there are even mobile phone apps available, such as `Serial Bluetooth Terminal` by Kai Morich for Android. If using that app I've found setting 'newline' to 'CR+LF' for both Send and Recieve works well.
   
