@@ -163,6 +163,14 @@ Before applying power to the D1 mini, hold the button on the HC-05, apply power,
 5. Send `AT+PSWD:"6245"` - this sets the PIN to 6245 (just an example)
 6. Send `AT+UART:9600,0,0` - this will make the default baud rate `9600`
 
+If you don't see the `OK` response it could because:
+
++ The HC-05 is not in programming mode - ensure the LED is flashing slowly
++ The RX/TX pins are the wrong way around
++ There is data corruption
+
+If data corruption might be the issue you can instead use a USB to TTL module, such as the `FT232RL`. Ensure it is set to 3V3 and the terminal is set to baud rate of `38400` with `NL+CR` or `CR+LF` for new lines.
+
 Note: In AT command mode the HC-05 expects a baud rate of `38400` so the controller automatically uses this rate in programming mode. I've found using a lower baud rate works best for normal operation but you can experiment. As this is using a software serial library it can have issues at higher rates. I'm not sure if it's an issue specific to the D1 Mini but I've certainly seen corruption occur when pushing the rate up.
 
 That's the programming done so disable programming mode on the controller:
