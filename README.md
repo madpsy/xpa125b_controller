@@ -308,13 +308,13 @@ To use this amplifier first connect the following:
   
 Note: Ensure grounds are also tied between the amplifier and the D1 Mini.
   
-If the amplifier isn't changing to the correct band or it is sometimes jumping between bands you might need to tweak the output voltages from the RC filter. To do this change the `yaesu_pwm_value` for each band in the `setBand` function.
-  
 Then, in the controller configuration:
   
 1. Set `amplifier` to `minipa50`
   
 The amplifier will now work with both PTT and automatic band selection.
+  
+If the amplifier isn't changing to the correct band or it is sometimes jumping between bands you might need to tweak the output voltages from the RC filter. To do this change the yaesu_pwm_value for each band in the setBand function.
   
 # Hardrock-50
 
