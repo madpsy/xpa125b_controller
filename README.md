@@ -314,7 +314,7 @@ Then, in the controller configuration:
   
 The amplifier will now work with both PTT and automatic band selection.
   
-If the amplifier isn't changing to the correct band or it is sometimes jumping between bands you might need to tweak the output voltages from the RC filter. To do this change the yaesu_pwm_value for each band in the setBand function.
+If the amplifier isn't changing to the correct band or it is sometimes jumping between bands you might need to tweak the output voltages from the RC filter. To do this change the `yaesu_pwm_value` for each band in the `setBand` function.
   
 # Hardrock-50
 
