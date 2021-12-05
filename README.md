@@ -156,7 +156,7 @@ In the controller's config, set the following:
 
 Before applying power to the D1 mini, hold the button on the HC-05, apply power, let go of the button after two seconds. The LED shold start blinking slowly (as opposed to the fast blinking it usually does). Now we can program it using `AT` commands.
 
-1. Open a serial connection to the D1 Mini (115200 baud)
+1. Open a serial connection to the D1 Mini (default 115200 baud)
 2. Set the newline characters to `NL+CR` or `CR+LF`
 3. Send `AT` and you should see an `OK` back. This should happen after every succesful command
 4. Send `AT+NAME:XPA125B` - this sets the Bluetooth name to `XPA125B`
