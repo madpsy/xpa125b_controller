@@ -733,9 +733,11 @@ In my case if TX Block is activated (i.e. `txblocktimer` is > 0) then the power 
   
 # To Do
   
-+ Convert lots of calls to asynchronous
++ Convert some of calls to quasi-asynchronous
 + Implement websockets for building frontends
 + Reduce the excessive use of `Strings` in the code
++ Fix memory fragmentation
++ Add support for storing settings on the internal flash
 + Input validation
 
 # Thanks
