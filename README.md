@@ -169,6 +169,15 @@ That's the programming done so disable programming mode on the controller:
 
 The LED should start blinking fast and is waiting for a client connection. See the `Bluetooth Serial Console` below for examples of how to connect to it.
 
+## HC-05 Direct Serial
+
+You could also attach an additional `hc-05` directly the to the `rx` and `tx` pins on the D1 Mini. This is the same as using the built in USB serial port so you could program the D1 Mini through this interface too. For this option, in the configuration, you would:
+
+1. Set `serial_baud` to match the hc-05
+2. Set `use_bluetooth_serial` to `false` (as you will be using the onboard serial interface)
+
+Now you could, for example, use an Icom IC-705 via bluetooth with one hc-05 and still have serial over bluetooth available using a second hc-05.
+
 # MAX3232
 
 The MAX3232 is an RS-232 transceiver which operates at 3V3 TTL so is perfect for a D1 Mini. We can use this for interfacing with RS-232 based devices, such as:
