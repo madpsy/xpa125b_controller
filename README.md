@@ -190,7 +190,7 @@ You can also attach an additional `hc-05` (bluetooth) or `MAX3232` (RS232) direc
 
 Note: The baud rate will be the same for both the onboard USB port and the hc-05/max3232. I suggest using `115200` as unlike the software serial option this is done in hardware so high baud rates are fine. For the hc-05 you can set this with the AT command from above.
 
-One downside to this approach is reprogramming the D1 Mini may not work when either the hc-05 or MAX3232 is connected so you may need to unplug it when you want to reprogram the device.
+One downside to this approach is reprogramming the D1 Mini may not work when either the hc-05 or MAX3232 is connected so you may need to unplug it when you want to reprogram the device. Specifically the `RX` pin on the D1 Mini side (so the `TX` pin on the hc-05/MAX3232) needs disconnected so you could add a little switch to this connection.
 
 Now you could, for example, use an Icom IC-705 via bluetooth with one hc-05 and also have the standard serial port available over bluetooth using the second hc-05.
 
