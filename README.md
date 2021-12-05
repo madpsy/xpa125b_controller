@@ -477,7 +477,9 @@ Next, in the controller configuration, ensure:
   
 Now automatic band selection will work. For PTT, assuming you have the N2ADR board fitted, you can connect the center of the EXTTR RCA to `D3` on the D1 Mini. Also ensure grounds are tied between the radio and the controller.
   
-One suggestion is using stereo 3.5mm chassis mounts on both the Hermes-Lite 2 and the controller for the serial connection. It's quick and easy and allows the use of a standard stereo audio cable to connect them together.
+Note: As the frequency is only sent by the radio when it changes this means if the controller is powered on or rebooted after the radio starts up you will need to make a frequency change to update the controller, otherwise it has no idea and defaults to 0Hz.
+  
+Tip: One suggestion is using stereo 3.5mm chassis mounts on both the Hermes-Lite 2 and the controller for the serial connection. It's quick and easy and allows the use of a standard stereo audio cable to connect them together. On the Hermes you can use the round hole on the back labeled `RF3`, assuming it is unused.
   
 # MQTT
 
