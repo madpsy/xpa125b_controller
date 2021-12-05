@@ -605,7 +605,7 @@ Note: The example scripts are very bare bones and intended to demonstrate the fe
 
 # Bluetooth Serial Console
 
-You can also use the HC-05 for sending serial commands and reading the output. We achieve this by redirecting all serial operations from the built in serial port to the HC-05. This is particularly useful if the controller is not plugged into the computer you want to use serial with (but in range of Bluetooth).
+You can also use the HC-05 for sending serial commands and reading the output. We achieve this by redirecting all serial operations from the built in serial port to the HC-05 using a software serial library. This is particularly useful if the controller is not plugged into the computer you want to use serial with (but in range of Bluetooth).
 
 Note: You can't use this with an Icom 705 (unless via rigctl) as the radio uses the HC-05 for communication. You can however attach an `hc-05` to the `rx` and `tx` pins (see above in the `HC-05/MAX3232 Direct Serial` section).
   
