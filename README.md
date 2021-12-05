@@ -4,7 +4,7 @@ Initially designed as an interface for the Xiegu XPA125B, this amplifier network
 
 The controller also makes current state avilable via various APIs, including REST, MQTT and serial over Bluetooth. This can be used for further automation and writing custom frontends. You could, for example, use Bluetooth to display the current frequency/band and TX state on a tablet.
 
-Designed and written for a D1 Mini microcontroller using the Arduino IDE.
+Designed and written for a D1 Mini board (ESP8266 microcontroller) using the Arduino IDE.
 
 ![assembled](images/controller_assembled.jpg)
 
