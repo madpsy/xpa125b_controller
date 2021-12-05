@@ -611,15 +611,24 @@ Note: You can't use this with an Icom 705 (unless via rigctl) as the radio uses 
   
 The way this works is the HC-05 appears as a serial port once paired over Bluetooth. In Linux this is achieved using `rfcomm` which creates a pseudo serial device. This is transparent to the software accessing the device so you can do anything you usually can with serial devices. To use this feature with Linux:
 
-1. Set `use_bluetooth_serial` to `true` and `hc_05_enabled` to `true` in the config
-2. Run `sudo hcitool scan` - this should find the controller as something like `98:D3:65:F1:3A:C0	XPA125B`
-3. Run `sudo bluetoothctl` - the CLI will start
-4. Run `trust 98:D3:65:F1:3A:C0` - use the MAC found with the previous scan
-5. Run `pair 98:D3:65:F1:3A:C0` - enter the PIN you chose when configuring the HC-05
-6. Run `set-alias XPA125B`
-7. Run `connect XPA125B`
-8. Run `quit` to close bluetoothctl
-9. Run `sudo rfcomm bind rfcomm0 98:D3:65:F1:3A:C0` - use the MAC of your own
+If using the hc-05 as a software serial device connected to pins `D4` and `D5` then:
+  
+1. Set `use_bluetooth_serial` to `true` and `hc_05_enabled` to `true` in the controller config
+  
+Otherwise, if the hc-05 is connected to the `rx` and `tx` pins:
+  
+1. Set `use_bluetooth_serial` to `false` and `hc_05_enabled` to `false` in the controller config
+  
+Now, on your linux box:  
+  
+1. Run `sudo hcitool scan` - this should find the controller as something like `98:D3:65:F1:3A:C0	XPA125B`
+2. Run `sudo bluetoothctl` - the CLI will start
+3. Run `trust 98:D3:65:F1:3A:C0` - use the MAC found with the previous scan
+4. Run `pair 98:D3:65:F1:3A:C0` - enter the PIN you chose when configuring the HC-05
+5. Run `set-alias XPA125B`
+6. Run `connect XPA125B`
+7. Run `quit` to close bluetoothctl
+8. Run `sudo rfcomm bind rfcomm0 98:D3:65:F1:3A:C0` - use the MAC of your own
   
 Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following on from the example above you could use it with the script, like this:
   
