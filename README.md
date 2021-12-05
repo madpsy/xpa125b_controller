@@ -295,6 +295,8 @@ Then, in the controller configuration:
   
 The amplifier will now work with both PTT and automatic band selection.
   
+If the amplifier isn't changing to the correct band or it is sometimes jumping between bands you might need to tweak the output voltages from the RC filter. To do this change the `pwm_value` for each band in the `setBand` function.
+  
 # MiniPA50 Amplifier
   
 This will work with any amplifier designed for the Yaesu 817/818 and indeed any amplifier which uses the same stepped voltages for band selection.
@@ -305,6 +307,8 @@ To use this amplifier first connect the following:
 2. Band pin of the ACC socket on the amp to the output of the RC filter
   
 Note: Ensure grounds are also tied between the amplifier and the D1 Mini.
+  
+If the amplifier isn't changing to the correct band or it is sometimes jumping between bands you might need to tweak the output voltages from the RC filter. To do this change the `yaesu_pwm_value` for each band in the `setBand` function.
   
 Then, in the controller configuration:
   
@@ -351,6 +355,8 @@ In the Hardrock-50's menu:
   
 That's it. The amplifier will now work with automatic band selection.
   
+If the amplifier isn't changing to the correct band or it is sometimes jumping between bands you might need to tweak the output voltages from the RC filter. To do this change the `yaesu_pwm_value` for each band in the `setBand` function.
+  
 # Yaesu Mode
 
 Most Yaesu radios (except the 817/818 - see below) use a similar method to SunSDR. There are four pins named Band A - D. We read the logic levels of the pins from the ACC port to determinte the band. This is effectively a 4 bit value. PTT is handled via another pin called 'TX GND'.
@@ -374,6 +380,8 @@ The Yaesu 817 & 818 radios use a different method for band selection. They have 
 2. Configure the controller with `mode = "yaesu817"` (no other config needed)
   
 Note: Ensure grounds are also tied between the radio and the D1 Mini.
+  
+If the band being reported by the controller is incorrect (check serial output or the web interface) you may need to tweak the voltage ranges of the controller. To do this look for the `setBandVoltage` function and change the ranges for each affected band.
 
 # Icom IC-705
 
