@@ -20,7 +20,7 @@ Designed and written for a D1 Mini board (ESP8266 microcontroller) using the Ard
 + SparkSDR
 + Rigctld (any Hamlib compatible rig)
 
-Built in `rigctl` support is the feature which allows this to work with almost any radio, including SDRs, such as Flex 1500/3000, ANAN and ELAD as well as anything in the Hamlib compatibility list. In addition, some software such as SDR Console, provide a CAT emulation layer, usually using the TS-2000 protocol.
+Built in `rigctl` support is the feature which allows this to work with almost any radio, including SDRs, such as Flex 1500/3000, ANAN and ELAD as well as anything in the Hamlib compatibility list. Software such as PowerSDR and SDR Console provide a CAT emulation layer, usually using the TS-2000 protocol, which rigctl talks to.
 
 # Supported Amplifiers:
 
