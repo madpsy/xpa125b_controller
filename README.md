@@ -652,6 +652,8 @@ Now, on your linux box:
 7. Run `quit` to close bluetoothctl
 8. Run `sudo rfcomm bind rfcomm0 98:D3:65:F1:3A:C0` - use the MAC of your own
   
+Note: After rebooting the computer you will need to rerun the `rfcomm` command so you could add it to the top of the script or run it on boot.
+  
 Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following on from the example above you could use it with the script, like this:
   
 `./amp_serial_control.sh localhost 51111 /dev/rfcomm0`
