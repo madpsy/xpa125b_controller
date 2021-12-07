@@ -670,7 +670,7 @@ Output from serial looks like this:
   
 # TX Inhibit
   
-When the controller starts it defaults to `0 Hz` and `band 0` and remains like this until the radio updates with the current band or frequency. Until the controller knows what band the radio is on it will inhibit `TX` so you don't transmit into the wrong filter.
+When the controller starts it defaults to `0 Hz` and `band 0` and remains like this until the radio updates with the current band or frequency. Until the controller knows what band the radio is on it will inhibit the amplifier going into `TX` state so you don't transmit through the wrong filter.
   
 For polling based modes this should update promptly after the controller boots. However, for example, with the Hermes-Lite in serial mode you need to trigger a frequency change so it sends the frequency to the controller.
   
