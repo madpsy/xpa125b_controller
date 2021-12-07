@@ -668,6 +668,12 @@ Output from serial looks like this:
   
 ![serial](images/serial_out.png)
   
+# TX Inhibit
+  
+When the controller starts it defaults to `0 Hz` and `band 0` and remains like this until the radio updates with the current band or frequency. Until the controller knows what band the radio is on it will inhibit transmit so you don't transmit into the wrong filter.
+  
+For polling based modes this should update promptly after the controller boots. However, for example, with the Hermes-Lite in serial mode you need to trigger a frequency change so it sends the frequency to the controller.
+  
 # TX Block
   
 If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes Yaesu & Icom modes (i.e. release PTT).
