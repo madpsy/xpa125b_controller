@@ -660,7 +660,7 @@ Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following
 
 `screen /dev/rfcomm0` (ctrl-a k to exit)
   
-Note: Because of the way rfcomm works it will only connect to the hc-05 when the serial port is accessed by something. This means it has to make the connection each time you send a command, therefore behaves quite slow. The way around this is to always have something reading from the port - such as the `cat` command above. You could add this before the `while` loop in the script:
+Note: Because of the way rfcomm works it will only connect to the hc-05 when the serial port is accessed by something. This means it has to make the connection each time you send a command, therefore behaves quite slow. The way around this is to always have something reading from the port. You could add this before the `while` loop in the script:
   
  `cat $TTY >/dev/null &`
 
