@@ -617,6 +617,10 @@ In a different terminal you can watch the serial output by running:
   
 `screen /dev/ttyUSB0` (ctrl-a k to exit)
   
+or
+  
+`picocom --echo /dev/rfcomm0` (ctrl-a ctrl-x to exit)
+  
 Now all frequency, mode and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. 
   
 To reduce PTT latency you can set `hybrid` to `true` in the config. This will use the analog control cable instead of rigctl for switching rx/tx.
@@ -659,6 +663,10 @@ Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following
 `./amp_serial_control.sh localhost 51111 /dev/rfcomm0`
 
 `screen /dev/rfcomm0` (ctrl-a k to exit)
+
+or
+  
+`picocom --echo /dev/rfcomm0` (ctrl-a ctrl-x to exit)
   
 Note: Because of the way rfcomm works it will only connect to the hc-05 when the serial port is accessed by something. This means it has to make the connection each time you send a command, therefore behaves quite slow. The way around this is to always have something reading from the port. You could add this before the `while` loop in the script:
   
