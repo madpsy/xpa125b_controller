@@ -615,7 +615,7 @@ Assuming rigctld is available on `localhost` port `51111` and the serial interfa
 
 In a different terminal you can watch the serial output by running:
   
-`cat /dev/ttyUSB0`
+`screen /dev/ttyUSB0` (ctrl-a k to exit)
   
 Now all frequency, mode and PTT state changes will be passed to the controller and it will work just as it does when connecting directly to rigctl over the network. 
   
@@ -658,7 +658,7 @@ Now you will have a new serial device at `/dev/rfcomm0` ready for use. Following
   
 `./amp_serial_control.sh localhost 51111 /dev/rfcomm0`
 
-`cat /dev/rfcomm0`
+`screen /dev/rfcomm0` (ctrl-a k to exit)
   
 Note: Because of the way rfcomm works it will only connect to the hc-05 when the serial port is accessed by something. This means it has to make the connection each time you send a command, therefore behaves quite slow. The way around this is to always have something reading from the port - such as the `cat` command above. You could add this before the `while` loop in the script:
   
