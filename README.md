@@ -740,6 +740,61 @@ If you use Home Assistant (https://www.home-assistant.io/) you can add sensors v
   Then create some cards on a dashboard and it will look something like this:
   
   ![ha](images/ha.png "ha")
+
+Similarly, if you use AppDaemon with HA you can create a dashboard:
+  
+```
+title: Radio
+widget_dimensions: [110, 110]
+widget_margins: [2, 2]
+columns: 3
+
+switch_radio:
+    widget_type: switch
+    title: Radio
+    entity: switch.radio
+    icon_on: mdi-flash
+    icon_off: mdi-flash-outline
+
+sensor_xpa125b_state:
+    widget_type: sensor
+    title: State
+    entity: sensor.xpa125b_state
+    text_style: "font-size: 100%; text-transform: uppercase;"
+    
+sensor_xpa125b_tx_time:
+    widget_type: sensor
+    title: Time
+    units: "s"
+    precision: 0
+    entity: sensor.xpa125b_tx_time
+
+sensor_xpa125b_band:
+    widget_type: sensor
+    title: Band
+    units: "m"
+    precision: 0
+    entity: sensor.xpa125b_band
+
+sensor_xpa125b_frequency_mhz:
+    widget_type: sensor
+    title: Frequency
+    units: "MHz"
+    precision: 3
+    entity: sensor.xpa125b_frequency_mhz
+
+sensor_xpa125b_mode:
+    widget_type: sensor
+    title: Mode
+    entity: sensor.xpa125b_mode
+    text_style: "font-size: 100%; text-transform: uppercase;"
+
+layout:
+ - switch_radio,sensor_xpa125b_state,sensor_xpa125b_tx_time
+ - sensor_xpa125b_band,sensor_xpa125b_frequency_mhz,sensor_xpa125b_mode
+```
+
+![appdaemon](images/appdaemon.png "appdaemon")
   
 Node-RED has built in support for MQTT. You can subscribe to the relevant topics and easily create automations based on these. Of course you can also send commands assuming you are in MQTT mode. 
 
