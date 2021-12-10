@@ -760,7 +760,7 @@ sensor_xpa125b_state:
     widget_type: sensor
     title: State
     entity: sensor.xpa125b_state
-    text_style: "font-size: 100%; text-transform: uppercase;"
+    text_style: "font-size: 200%; text-transform: uppercase; font-weight: bold;"
     
 sensor_xpa125b_tx_time:
     widget_type: sensor
