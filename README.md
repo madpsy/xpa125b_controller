@@ -525,6 +525,7 @@ In order to change band or trigger PTT from either the web or REST interface you
 In order to change band or trigger PTT from the serial interface you must set the `mode` to `serial`. This can be done using `setmode`. See below for further details.
 
 + serialonly [true|false] (disables every other mode and wifi entirely)
++ sethybrid [true|false]
 + setmode [yaesu|yaesu817|icom|elecraft|hermes|serial|http|mqtt|rigctl|none]
 + setstate [rx|tx]
 + setband [160|80|60|40|30|20|17|15|12|11|10]
@@ -541,6 +542,7 @@ Note: There are no commands to get current states over serial. The reason being 
 # Valid HTTP POST paths:
 
 + /setmode mode=[yaesu|yaesu817|icom|elecraft|hermes|serial|http|mqtt|rigctl|none]
++ /sethybrid hybrid=[true|false]
 + /setstate state=[rx|tx]
 + /setband band=[160|80|60|40|30|20|17|15|12|11|10]
 + /setfreq freq=[frequency in Hz]
@@ -557,6 +559,7 @@ Note: When you use `setfreq` the system will translate this into a band automati
 
 + /time (show controller NTP time)
 + /mode (show current mode)
++ /hybrid (show hybrid mode)
 + /state (show current PTT state)
 + /band (show current band)
 + /frequency (show current frequency - must have been set)
@@ -735,6 +738,9 @@ If you use Home Assistant (https://www.home-assistant.io/) you can add sensors v
   name: "XPA125B TX Block Timer"
   state_topic: "xpa125b/txblocktimer"
   unit_of_measurement: "s"
+- platform: mqtt
+  name: "XPA125B Hybrid"
+  state_topic: "xpa125b/hybrid"
 ```
 
   Then create some cards on a dashboard and it will look something like this:
@@ -764,7 +770,7 @@ sensor_xpa125b_state:
     
 sensor_xpa125b_tx_time:
     widget_type: sensor
-    title: Time
+    title: TX Time
     units: "s"
     precision: 0
     entity: sensor.xpa125b_tx_time
@@ -789,9 +795,30 @@ sensor_xpa125b_mode:
     entity: sensor.xpa125b_mode
     text_style: "font-size: 100%; text-transform: uppercase;"
 
+sensor_xpa125b_rig_mode:
+    widget_type: sensor
+    title: Rig Mode
+    entity: sensor.xpa125b_rig_mode
+    text_style: "font-size: 100%; text-transform: uppercase;"
+
+sensor_xpa125b_hybrid:
+    widget_type: sensor
+    title: Hybrid
+    entity: sensor.xpa125b_hybrid
+    text_style: "font-size: 100%; text-transform: uppercase;"
+
+sensor_xpa125b_tx_block_timer:
+    widget_type: sensor
+    title: Block Time
+    units: "s"
+    precision: 0
+    entity: sensor.xpa125b_tx_block_timer
+    
+
 layout:
  - switch_radio,sensor_xpa125b_state,sensor_xpa125b_tx_time
  - sensor_xpa125b_band,sensor_xpa125b_frequency_mhz,sensor_xpa125b_mode
+ - sensor_xpa125b_rig_mode,sensor_xpa125b_hybrid,sensor_xpa125b_tx_block_timer
 ```
 
 ![appdaemon](images/appdaemon.png "appdaemon")
