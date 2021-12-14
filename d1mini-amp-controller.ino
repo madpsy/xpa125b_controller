@@ -71,6 +71,9 @@ int tx_block_time = 60; // 60 = 1 minute
 
 // *********** END CONFIG ***********
 
+#include <ArduinoJson.h>
+#include "FS.h"
+#include <LittleFS.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <NTPClient.h>
@@ -82,7 +85,7 @@ int tx_block_time = 60; // 60 = 1 minute
 
 ESP8266WebServer server(80);
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
+NTPClient timeClient(ntpUDP, ntp_server, ntp_offset, ntp_interval);
 WiFiClient mqttClient;
 WiFiClient rigctlClient;
 PubSubClient pubsubClient;
@@ -174,6 +177,63 @@ char ser_buffer[32];
 SoftwareSerial BTserial(hc05_txd_pin, hc05_rxd_pin);
 SoftwareSerial MAX3232(max3232_txd_pin, max3232_rxd_pin);
 SoftwareSerial Hermes(hermes_txd_pin, hermes_rxd_pin);
+
+bool loadConfig() {
+  File configFile = LittleFS.open("/config.json", "r");
+  if (!configFile) {
+    serialPrintTime();
+    serialPrintln("Failed to open config file");
+    return false;
+  }
+  size_t size = configFile.size();
+  if (size > 1024) {
+    serialPrintTime();
+    serialPrintln("Config file size is too large");
+    return false;
+  }
+  
+  std::unique_ptr<char[]> buf(new char[size]);
+  configFile.readBytes(buf.get(), size);
+
+  StaticJsonDocument<200> doc;
+  auto error = deserializeJson(doc, buf.get());
+  if (error) {
+    serialPrintTime();
+    serialPrintln("Failed to parse config");
+    return false;
+  }
+
+  const char* serverName = doc["serverName"];
+  const char* accessToken = doc["accessToken"];
+  const char* testMoo = doc["testMoo"];
+  
+  return true;
+}
+
+String getConfig() {
+  String contents;
+  File configFile = LittleFS.open("/config.json", "r");
+  while(configFile.available()) {
+    contents += (configFile.readString());
+  }
+  return contents;
+}
+
+bool saveConfig() {
+  StaticJsonDocument<200> doc;
+  doc["serverName"] = "api.example.com";
+  doc["accessToken"] = "128du9as8du12eoue8da98h123ueh9h98";
+  doc["testMoo"] = "blah";
+
+  File configFile = LittleFS.open("/config.json", "w");
+  if (!configFile) {
+    serialPrintTime();
+    serialPrintln("Failed to open config file for writing");
+    return false;
+  }
+  serializeJson(doc, configFile);
+  return true;
+}
 
 String getValue(String data, char separator, int index)
 {
@@ -398,6 +458,10 @@ void getMode() {
   server.send(200, "text/html; charset=UTF-8", mode);
 }
 
+void getHybrid() {
+  server.send(200, "text/html; charset=UTF-8", hybrid ? "true" : "false");
+}
+
 void getState() {
   server.send(200, "text/html; charset=UTF-8", curState);
 }
@@ -611,8 +675,23 @@ void httpSetRigctlMode(String value) {
   setRigctlMode(value);
 }
 
+void setHybrid(String enable) {
+  serialPrintTime();
+  if (enable == "true") {
+    hybrid = true;
+    serialPrintln("hybrid true");
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/hybrid", "true", true);
+  } else {
+    hybrid = false;
+    serialPrintln("hybrid false");
+    if (pubsubClient.connected()) pubsubClient.publish("xpa125b/hybrid", "false", true);
+  }
+}
+
 void setRigctlPtt(String ptt) {
-  if ((ptt != "0") && (tx_block_timer != 0)) {
+  if ((ptt != "0" && tx_block_timer != 0) || (ptt != "0" && curBand == "0")) {
+     serialPrintTime();
+     serialPrintln("Cannot send rigctl PTT event as TX is blocked");
      return;
   } else {
      serialPrintTime();
@@ -686,6 +765,12 @@ void handleRoot() {
   message += "<form action='/setmqtt' method='post' target='response'>";
   message += "<button name='mqtt' value='disable'>Disable MQTT</button>";
   message += "</form>";
+  message += "<form action='/sethybrid' method='post' target='response'>";
+  message += "<button name='hybrid' value='true'>Enable Hybrid</button>";
+  message += "</form>";
+  message += "<form action='/sethybrid' method='post' target='response'>";
+  message += "<button name='hybrid' value='false'>Disable Hybrid</button>";
+  message += "</form>";
   message += "Rigctl Server Settings:</br></br>";
   message += "<form action='/setrigctl' method='post' target='response'>";
   message += "<input type='text' size='15' maxlength='50' name='address' value='";
@@ -721,6 +806,7 @@ void handleRoot() {
   message += "</br></br>";
   message += "Valid serial commands (115200 baud):</br></br>";
   message += "serialonly [true|false] (disables yaesu and wifi entirely)</br>";
+  message += "sethybrid [true|false]</br>";
   message += "setmode [yaesu|yaesu817|icom|sunsdr|elecraft|hermes|serial|http|mqtt|rigctl|none]</br>";
   message += "setstate [rx|tx]</br>";
   message += "setband [160|80|60|40|30|20|17|15|12|11|10]</br>";
@@ -732,6 +818,7 @@ void handleRoot() {
   message += "setrigctlmode mode=[mode] ('mode' depends on radio - rigctl only)</br>";
   message += "setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP POST paths:</br></br>";
+  message += "/sethybrid [true|false]</br>";
   message += "/setmode mode=[yaesu|yaesu817|icom|sunsdr|elecraft|hermes|serial|http|mqtt|rigctl|none]</br>";
   message += "/setstate state=[rx|tx]</br>";
   message += "/setband band=[160|80|60|40|30|20|17|15|12|11|10]</br>";
@@ -744,6 +831,7 @@ void handleRoot() {
   message += "/setrigctlptt ptt=[0|1] (rigctl only)</br></br>";
   message += "Valid HTTP GET paths:</br></br>";
   message += "<a href='/time'>/time</a> (show controller time)</br>";
+  message += "<a href='/hybrid'>/hybrid</a> (show hybrid mode)</br>";
   message += "<a href='/mode'>/mode</a> (show current mode)</br>";
   message += "<a href='/state'>/state</a> (show current state)</br>";
   message += "<a href='/band'>/band</a> (show current band)</br>";
@@ -809,8 +897,9 @@ void getStatus() {
   message += "&nbsp TX Blocker: ";
   message += String(tx_block_seconds_true);
   message += "&nbsp MQTT: ";
-  String mqttvalue = (mqtt_enabled ? "enabled" : "disabled");
-  message += mqttvalue;
+  message += mqtt_enabled ? "enabled" : "disabled";
+  message += "&nbsp Hybrid: ";
+  message += hybrid ? "true" : "false";
   message += "</body></html>";
   server.send(200, "text/html; charset=UTF-8", message);
 }
@@ -870,6 +959,7 @@ void setMode(String value) {
     serialPrint("mode ");
     serialPrintln(mode);
     if (hybrid == true) {
+      serialPrintTime();
       serialPrintln("hybrid mode for PTT is enabled");
     }
     if (pubsubClient.connected()) pubsubClient.publish("xpa125b/mode", charMode, true);
@@ -1110,18 +1200,24 @@ void setState(String state) {
       previous_state = 0;
       tx_timer = 0;
       tx_seconds = 0;
-    } else if (( state == "tx" ) && ( tx_block_timer == 0 )) {
-     current_state = 1;
-     curState = "tx";
-     if (current_state != previous_state) {
-       last_debounce_time = millis();
-       digitalWrite(ptt_pin, HIGH);
-       serialPrintTime();
-       serialPrintln("state tx");
-       if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
-     }
-     previous_state = 1;
+    } else if (state == "tx" && tx_block_timer == 0) {
+     if (curBand != "0") {
+       current_state = 1;
+       curState = "tx";
+       if (current_state != previous_state) {
+          last_debounce_time = millis();
+          digitalWrite(ptt_pin, HIGH);
+          serialPrintTime();
+          serialPrintln("state tx");
+          if (pubsubClient.connected()) pubsubClient.publish("xpa125b/state", "tx");
+       }
+       previous_state = 1;
+     } else {
+      serialPrintTime();
+      serialPrintln("TX blocked as band is not set");
+      last_debounce_time = millis();
     }
+   } 
   }
 }
 
@@ -1142,6 +1238,11 @@ void setMQTT(String value) {
 void httpSetMode(String value) {
   server.send(200, "text/html; charset=UTF-8", value);
   setMode(value);
+}
+
+void httpSetHybrid(String value) {
+  server.send(200, "text/html; charset=UTF-8", value);
+  setHybrid(value);
 }
 
 void httpSetBand(String band) {
@@ -1200,8 +1301,9 @@ void wifi(String state) {
       serialPrintln("NTP client started");
       mqttConnect();
     } else {
+      serialPrintln("");
       serialPrintTime();
-      serialPrintln("\nWiFi failed to connect");;
+      serialPrintln("WiFi failed to connect");
     }
   } else if ((state == "disable") && (WiFi.status() != WL_DISCONNECTED)) {
     WiFi.mode(WIFI_OFF);
@@ -1311,7 +1413,11 @@ void processSerial(String serialValue) {
    serialValue.trim();
    String command = getValue(serialValue,' ',0);
    String value = getValue(serialValue,' ',1);
-   if (command == "setmode") {
+   if (command == "restart") {
+     ESP.restart();
+   } else if (command =="sethybrid") {
+     setHybrid(value);
+   } else if (command == "setmode") {
      setMode(value);
    } else if ((command == "setband") && (mode == "serial")) {
      setBand(value);
@@ -1361,6 +1467,33 @@ void setup(void) {
   }
   serialPrintTime();
   serialPrintln("XPA125B controller started");
+
+  serialPrintTime();
+  if (!LittleFS.begin()) {
+    serialPrintln("Failed to mount file system");
+    return;
+  } else {
+    serialPrintln("Successfully mounted file system");
+  }
+
+
+/*
+  if (!saveConfig()) {
+    serialPrintTime();
+    serialPrintln("Failed to save config");
+  } else {
+    serialPrintTime();
+    serialPrintln("Config saved");
+  }
+*/
+
+  if (!loadConfig()) {
+    serialPrintTime();
+    serialPrintln("Failed to load config");
+  } else {
+    serialPrintTime();
+    serialPrintln("Config loaded");
+  }
   
   if (wifi_enabled == true) {
     wifi("enable");
@@ -1377,19 +1510,14 @@ void setup(void) {
     }  
   }
 
-  if (hybrid == true) {
-    serialPrintTime();
-    serialPrintln("Hybrid mode is enabled");
-  } else {
-    serialPrintTime();
-    serialPrintln("Hybrid mode is disabled");
-  }
-
   setupAmplifier(amplifier);
   
-  // set to 160m and 0Hz by default
-  setBand("160");
+  // set to band 0 and freq 0 by default
+  setBand("0");
   setFreq("0");
+
+  String default_hybrid = hybrid ? "true" : "false";
+  setHybrid(default_hybrid);
 
   pinMode(band_pin, OUTPUT);
   pinMode(ptt_pin, OUTPUT);
@@ -1418,6 +1546,10 @@ void setup(void) {
 
   server.on("/", handleRoot);
 
+  server.on("/config", []() {
+       server.send(200, "application/json; charset=UTF-8",  getConfig());
+  });
+
   server.on("/status", getStatus);
 
   server.on("/network", []() {
@@ -1426,6 +1558,10 @@ void setup(void) {
 
   server.on("/mode", []() {
         getMode();
+  });
+
+  server.on("/hybrid", []() {
+        getHybrid();
   });
 
   server.on("/state", []() {
@@ -1471,6 +1607,14 @@ void setup(void) {
        httpSetMode(server.arg(0)); 
     } else {
       server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'mode' and a value");
+    }
+  });
+
+  server.on("/sethybrid", []() {
+    if ((server.method() == HTTP_POST) && (server.argName(0) == "hybrid")) {
+      httpSetHybrid(server.arg(0)); 
+    } else {
+      server.send(405, "text/html; charset=UTF-8", "Must send a POST with argument 'hybrid' and a value");
     }
   });
   
@@ -1671,6 +1815,8 @@ void loop(void) {
      setState(message);
    } else if ( topic == "setmode" ) {
      setMode(message);
+   } else if ( topic == "sethybrid" ) {
+     setHybrid(message);
    } else if ((topic == "setrigmode") && (mode == "mqtt")) {
      setRigMode(message);
    } else if ((topic == "setrigctlfreq") && (mode == "rigctl")) {
@@ -1961,8 +2107,10 @@ void loop(void) {
       String aaa;
       aaa = Hermes.readStringUntil(';');
       strncpy(aa,aaa.c_str(),13);
-      long unsigned fq = strtoul(&aa[4],NULL,10);
-      setFreq(String(fq));
+      if (aaa.length() == 13) {
+        long unsigned fq = strtoul(&aa[4],NULL,10);
+        setFreq(String(fq));
+      }
     }
   }
 }
