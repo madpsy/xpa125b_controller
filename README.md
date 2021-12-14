@@ -251,7 +251,9 @@ To enable this mode simply set the following in the controller configuration:
   
 1. `hybrid` to `true`
   
-Now, reguardless of mode, PTT will be handled by waiting for the state of `D3` to change.
+Or you use `sethybrid` via Serial, MQTT or REST during runtime.
+  
+Now, reguardless of mode, PTT will be handled by waiting for the state of the PTT pin `D3` to change state.
   
 # Rigctl
 
@@ -539,7 +541,9 @@ In order to change band or trigger PTT from the serial interface you must set th
   
 Note: There are no commands to get current states over serial. The reason being all state changes are written to the serial interface when they occur so you need to parse and track them as they appear.
 
-# Valid HTTP POST paths:
+# Valid HTTP POST paths for the REST interface:
+  
+This runs on port 80, same as the web interface.
 
 + /setmode mode=[yaesu|yaesu817|icom|elecraft|hermes|serial|http|mqtt|rigctl|none]
 + /sethybrid hybrid=[true|false]
@@ -555,7 +559,9 @@ Note: There are no commands to get current states over serial. The reason being 
   
 Note: When you use `setfreq` the system will translate this into a band automatically. The idea is it makes it a lot easier than having to do the translation yourself.
 
-# Valid HTTP GET paths:
+# Valid HTTP GET paths for the REST interface:
+  
+This runs on port 80, same as the web interface.
 
 + /time (show controller NTP time)
 + /mode (show current mode)
