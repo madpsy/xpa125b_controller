@@ -695,7 +695,7 @@ For polling based modes this should update promptly after the controller boots. 
   
 # TX Block
   
-If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes Yaesu & Icom modes (i.e. release PTT).
+If TX time exceeds 300 seconds (default) then TX will be blocked for 60 seconds (default). After the block releases you must send another TX event to start again - this includes modes where TX state is read from the PTT pin `D3` (i.e. the pin state must change to re-trigger).
 
 In every mode this tells the amp to switch to RX. In rigctl mode this also tells the radio itself to stop TX'ing.
   
