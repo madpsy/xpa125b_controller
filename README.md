@@ -131,6 +131,13 @@ For SunSDR:
 
 Yaesu radios which use stepped voltage for outputting band selection should have their `BAND` pin connected to `A0` on the D1 Mini. This is the ADC which can read the voltage.
 
+As the 817 will output 4V when tuned to 70cm, exceeding the 3V3 input voltage limit of the microcontroller, I suggest adding either:
+
++ Add a diode (should have a ~0.7v drop across it)
++ Build a simple voltage divider with two resistors
+
+Either way you should ensure the input voltage does not exceed 3V3.
+
 Other radios which use stepped voltage could also be used, though you may need to tweak the relative values in the code.
 
 # Bluetooth module (HC-05)
