@@ -533,6 +533,7 @@ In order to change band or trigger PTT from either the web or REST interface you
   
 In order to change band or trigger PTT from the serial interface you must set the `mode` to `serial`. This can be done using `setmode`. See below for further details.
 
++ restart (forces the controller to restart)
 + serialonly [true|false] (disables every other mode and wifi entirely)
 + sethybrid [true|false]
 + setmode [yaesu|yaesu817|icom|elecraft|hermes|serial|http|mqtt|rigctl|none]
