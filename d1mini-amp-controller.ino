@@ -11,6 +11,12 @@ bool wifi_enabled = false;
 const char* ssid = "";
 const char* password = "";
 
+// NTP config
+// offset in seconds, update interval in milliseconds
+char* ntp_server = "pool.ntp.org";
+int ntp_offset = 0;
+int ntp_interval = 60000;
+
 // MQTT config
 bool mqtt_enabled = false;
 const char* mqttserver = "";
