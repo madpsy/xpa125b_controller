@@ -18,6 +18,7 @@ Designed and written for a D1 Mini board (ESP8266 microcontroller) using the Ard
 + Elecraft (KX2 / KX3)
 + Hermes-Lite 2
 + SparkSDR
++ QRP Labs QDX (via Hamlib)
 + Rigctld (any Hamlib compatible rig)
 
 Built in `rigctl` support is the feature which allows this to work with almost any radio, including SDRs, such as Flex 1500/3000, ANAN and ELAD as well as anything in the Hamlib compatibility list. Software such as PowerSDR and SDR Console provide a CAT emulation layer, usually using the TS-2000 protocol, which rigctl talks to.
@@ -473,6 +474,18 @@ That should be all that's required.
 # Hermes-Lite 2
   
 There are two ways to interface with a Hermes-Lite 2. Using rigctl via software such as SparkSDR and SDR Console or by using the serial interface.
+
+# QRP Labs QDX
+
+The QDX can be interfaced easily via `rigctl`. You need the latest version of Hamlib due to a bug detailed here https://github.com/Hamlib/Hamlib/issues/1196
+
+Example: `rigctld -m 2002 -r <path to radio serial device -s 9600 -t 51111` (2002 is the ID for TS-440)
+
+Set the controller to `rigctl` mode and ensure `hybrid` is disabled. Use the IP address of the host and port 51111. Assuming rigctl is running on the same host as the software such as WSJT-X set the radio type to `Hamlib NET rigctl` and the server to `localhost:51111`.
+
+For potentially faster/safer PTT detection you could also use the 3.5mm PTT port on the QDX and enable `PTT TX to Ground` in `Band Settings`. This will cause the 'tip' of the connector to go to ground when the unit is transmitting (475 ohms). For this configuration you would connect the tip to `D3` on the D1 Mini and tie the grounds together. Ensure to enable `Hybrid` mode in the controller - this will then use rigctl for frequency/band detectiona and PTT detection from the radio.
+
+An alternative would be to enable the second serial port mode in the QDX which turns the 3.5mm port into a serial interface. This would require you to write TS-440 CAT compatible code for the controller but would have the advantage of not needing to use rigctl at all. I might get around to this myself at some point.
 
 ## SparkSDR
 
