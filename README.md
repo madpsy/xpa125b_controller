@@ -18,7 +18,7 @@ Designed and written for a D1 Mini board (ESP8266 microcontroller) using the Ard
 + Elecraft (KX2 / KX3)
 + Hermes-Lite 2
 + SparkSDR
-+ QRP Labs QDX (via Hamlib)
++ QRP Labs QDX/QCX (via Hamlib)
 + Rigctld (any Hamlib compatible rig)
 
 Built in `rigctl` support is the feature which allows this to work with almost any radio, including SDRs, such as Flex 1500/3000, ANAN and ELAD as well as anything in the Hamlib compatibility list. Software such as PowerSDR and SDR Console provide a CAT emulation layer, usually using the TS-2000 protocol, which rigctl talks to.
@@ -475,17 +475,17 @@ That should be all that's required.
   
 There are two ways to interface with a Hermes-Lite 2. Using rigctl via software such as SparkSDR and SDR Console or by using the serial interface.
 
-# QRP Labs QDX
+# QRP Labs QDX/QCX
 
-The QDX can be interfaced easily via `rigctl`. You need the latest version of Hamlib due to a bug detailed here https://github.com/Hamlib/Hamlib/issues/1196 which has also since meant a new ID created for QRP-Labs QDC/QDX.
+The QDX/QCX can be interfaced easily via `rigctl`. You need the latest version of Hamlib due to a bug detailed here https://github.com/Hamlib/Hamlib/issues/1196 which has also since meant a new ID created for QRP-Labs QDC/QDX.
 
 Example: `rigctld -m 2052 -r <path to radio serial device> -s 9600 -t 51111` (2052 is the ID for the QDC/QDX)
 
 Set the controller to `rigctl` mode and ensure `hybrid` is disabled. Use the IP address of the host and port 51111. Assuming rigctl is running on the same host as the software such as WSJT-X set the radio type to `Hamlib NET rigctl` and the server to `localhost:51111`.
 
-For potentially faster/safer PTT detection you could also use the 3.5mm PTT port on the QDX and enable `PTT TX to Ground` in `Band Settings`. This will cause the 'tip' of the connector to go to ground when the unit is transmitting (475 ohms). For this configuration you would connect the tip to `D3` on the D1 Mini and tie the grounds together. Ensure to enable `Hybrid` mode in the controller - this will then use rigctl for frequency/band detection and PTT detection from the radio itself.
+For potentially faster/safer PTT detection you could also use the 3.5mm PTT port on the radio and enable `PTT TX to Ground` in `Band Settings`. This will cause the 'tip' of the connector to go to ground when the unit is transmitting (475 ohms). For this configuration you would connect the tip to `D3` on the D1 Mini and tie the grounds together. Ensure to enable `Hybrid` mode in the controller - this will then use rigctl for frequency/band detection and PTT detection from the radio itself.
 
-An alternative would be to enable the second serial port mode in the QDX which turns the 3.5mm port into a serial interface. This would require you to write TS-480 CAT compatible code for the controller but would have the advantage of not needing to use rigctl at all. I might get around to this myself at some point.
+An alternative would be to enable the second serial port mode in the radio which turns the 3.5mm port into a serial interface. This would require you to write TS-480 CAT compatible code for the controller but would have the advantage of not needing to use rigctl at all. I might get around to this myself at some point.
 
 ## SparkSDR
 
