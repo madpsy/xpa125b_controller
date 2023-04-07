@@ -100,6 +100,10 @@ There is built in debounce logic which you can enable if your radio uses a relay
 
 If you set this to a low value and notice PTT no longer works try increasing the value until it does. I've found `10` works well but you may need to experiment. If even after setting a suitable debounce value you find PTT randomly oscilates at higher output powers the chances are there is a grounding issue. Ensure all grounds are at the same potential to prevent this. 
 
+If you need to set a delay between when the radio itself sets PTT off and when the amplifier is told PTT is off you can specify a time in milliseconds. This is useful if your amplifier requires a delay between RF stopping and the PTT signal to transition, such as to to prevent an arc in the switching relay. 
+
+1. Set `tx_to_rx_delay` to some value > `0` in milliseconds
+
 ## RC Filter
 
 The RC filter is an attempt to filter the PWM voltage from the D1 Mini by means of a 1st order LPF. The PWM frequency is set to 30 KHz in the code and without this filter you might find amplifiers which use stepped voltage for band selection are unstable (randomly switching between bands). The values for the resistor and ceramic capacitor are quite critical and the values given below are just an example. You might find you need to tweak these values. I have seen a 10k resistor and 10uF capacitor work so just experiment.
