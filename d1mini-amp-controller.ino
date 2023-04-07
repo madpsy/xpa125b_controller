@@ -31,6 +31,7 @@ char* icom_interface = "hc_05";
 
 // always use analog control for PTT
 bool hybrid = false;
+
 // TX to RX transition delay in milliseconds
 // Useful for amps which need a delay between RF stopping and the PTT signal to transition
 int tx_to_rx_delay = 0;
