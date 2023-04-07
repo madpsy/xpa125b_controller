@@ -31,6 +31,9 @@ char* icom_interface = "hc_05";
 
 // always use analog control for PTT
 bool hybrid = false;
+// TX to RX transition delay in milliseconds
+// Useful for amps which need a delay between RF stopping and the PTT signal to transition
+int tx_to_rx_delay = 0;
 
 // milliseconds of debounce for analog PTT
 int debounce_delay = 0;
@@ -1198,6 +1201,7 @@ void setState(String state) {
       curState = "rx";
       if (current_state != previous_state) {
        last_debounce_time = millis();
+       delay(tx_to_rx_delay);
        digitalWrite(ptt_pin, LOW);
        serialPrintTime();
        serialPrintln("state rx");
