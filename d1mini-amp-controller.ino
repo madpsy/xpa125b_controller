@@ -7,9 +7,9 @@ int serial_baud = 115200;
 bool use_bluetooth_serial = false;
 
 // WiFi config
-bool wifi_enabled = false;
-const char* ssid = "";
-const char* password = "";
+bool wifi_enabled = true;
+const char* ssid = "iPhone De Jose";
+const char* password = "87654321";
 
 // NTP config
 // offset in seconds, update interval in milliseconds
@@ -30,14 +30,14 @@ String default_mode = "none";
 char* icom_interface = "hc_05";
 
 // always use analog control for PTT
-bool hybrid = false;
+bool hybrid = true;
 
 // TX to RX transition delay in milliseconds
 // Useful for amps which need a delay between RF stopping and the PTT signal to transition
 int tx_to_rx_delay = 0;
 
 // milliseconds of debounce for analog PTT
-int debounce_delay = 0;
+int debounce_delay = 10;
 
 // enable bluetooth (required for Icom)
 // To program the HC-05:
@@ -51,8 +51,8 @@ int debounce_delay = 0;
 // AT+NAME:XPA125B
 // AT+PSWD:"6245"
 // AT+UART:9600,0,0
-bool hc_05_enabled = false;
-bool hc_05_program = false;
+bool hc_05_enabled = true;
+bool hc_05_program = true;
 int hc_05_baud = 9600;
 
 // enable MAX3232 (required for Elecraft radio or Hardrock-50 amplifier)
