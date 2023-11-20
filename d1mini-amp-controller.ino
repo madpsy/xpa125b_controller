@@ -65,7 +65,7 @@ int max3232_timeout = 100;
 bool hermes_enabled = false;
 
 // amplifier type
-char* amplifier = "xpa125b";
+const char* amplifier = "xpa125b";
 
 // rigctl config
 bool rigctl_default_enable = false;
