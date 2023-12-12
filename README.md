@@ -82,10 +82,15 @@ Tools -> Board -> Board Manager -> Select (LOIN)WEMOS D1 Mini (clone)
 You need the following additional libraries: 
 
 ArduinoMqttClient (arduino)
+
 arduinojson (benoit blanchon)
+
 ntpclient (fabrice weinberg)
+
 pubsubclient (Nick O'Leary)
+
 regexp (Nick Gammon)
+
 
 # Schematic
 
