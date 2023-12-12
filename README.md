@@ -68,6 +68,25 @@ Total cost of parts for this project is under £30/$40
 + Mini DIN cable for XPA125B
 + MAX3232 serial module (optional)
 
+# Build
+
+In Arduino IDE:
+
+File > Preferences
+Add the following link to the Additional Boards Manager URLs: http://arduino.esp8266.com/stable/package_esp8266com_index.json and press OK button
+
+Click Tools > Boards menu > Boards Manager, search for ESP8266 and install ESP8266 platform from ESP8266 community
+
+Tools -> Board -> Board Manager -> Select (LOIN)WEMOS D1 Mini (clone)
+
+You need the following additional libraries: 
+
+ArduinoMqttClient (arduino)
+arduinojson (benoit blanchon)
+ntpclient (fabrice weinberg)
+pubsubclient (Nick O'Leary)
+regexp (Nick Gammon)
+
 # Schematic
 
 ## Power
